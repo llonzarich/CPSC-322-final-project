@@ -18,18 +18,19 @@ class MyDecisionTreeClassifier:
             y_train (list of obj): - The target y values (labels corresponding to X_train).
                                    - has shape: y_train is n_samples
             tree (nested list): The extracted tree model.
-
+            F (int): the number of attributes to use consider for the split at each node when building the decision tree.
         Notes:
             Loosely based on sklearn's DecisionTreeClassifier: https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
             Terminology: instance = sample = row and attribute = feature = column
     """
-    def __init__(self):
+    def __init__(self, F=None):
         """
             Purpose: Initializer for MyDecisionTreeClassifier.
         """
         self.X_train = None
         self.y_train = None
         self.tree = None
+        self.F = F
 
 
     def fit(self, X_train, y_train):
@@ -53,9 +54,7 @@ class MyDecisionTreeClassifier:
         """
         self.X_train = X_train
         self.y_train = y_train
-        
-        # initialize a tree 
-        tree = []
+        F = self.F
 
         # find number of features in list (by looking at the length of the first row in X_train).
         num_attributes = len(X_train[0])
@@ -122,19 +121,23 @@ class MyRandomForestClassifier:
                                    - has shape: y_train is n_samples
             N (int): - the number of trees to generate and train (we choose the most accurate M of these trees to use for our forest).
                      - corresponds to "n_estimators" in the sklearn random forest class implementation.
+                     - default is 100.
             M (int): - the number of trees to be included in the forest. 
                      - M is a subset of N
                      - this parameter is necessary because we only want to take a certain number of the best trees to for our forest.
-                     - if None, let M be N-1 (1 less than the number of trees) (because M < N)
+                     - if None, let M be N-1 (1 less than the number of trees because M < N)
             F (int): - the number of randomly chosen attributes to be used as candidates for the split at each Node. 
             trees (list of obj): - stores the built decison trees for the forest.
         
             Notes:
                 Loosely based on sklearn's RandomForestClassifier: https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
     """
-    def __init__(self, N, M, F):
+    # def __init__(self, N, M, F):
+    def __init__(self, N=100, M=None, F=None):
         """
             Purpose: Initializer for MyRandomForestClassifier
+
+            Args:
         """
         self.X_train = None
         self.y_train = None
@@ -234,27 +237,25 @@ class MyRandomForestClassifier:
             Notes: - construct N decision trees, choose the M most accurate trees of these N to form the forest which will be used during classification tasks.
             
         '''
+        N = self.N
+        M = self.M if self.M is not None else N-1
+        F = self.F
+
         candidate_trees = [] # to store the M best trees (M subset of N) (N = number of trees trained))
 
-        if N is None:
-            N = N
-
-        # set the number of "best" trees to form the forest from the total N trees that will be trained.
-        if M is None:
-            M = self.n_estimators - 1
-
+        # generate test sets (1/3 of dataset) and train sets (remaining 2/3 of dataset).
         self.generate_test_set(X_train, y_train)
         X_train = self.X_train
         y_train = self.y_train
 
-        # generate a tree for each tree in the random forest
-        for i in range(self.n_estimators):
+        # generate, train, and evaluate trees for the forest.
+        for i in range(N):
 
-            # generate random subsample for generating tree.
+            # generate random subsamples of data for training and evaluating the tree.
             X_sample, X_out_of_bag, y_sample, y_out_of_bag = bootstrap_sample(X_train, y_train)
 
             # create a new tree object for the forest.
-            tree = MyDecisionTreeClassifier()
+            tree = MyDecisionTreeClassifier(F=F)
 
             # train the tree on the training data (samples and corresp. labels).
             tree.fit(X_sample, y_sample)
@@ -266,7 +267,7 @@ class MyRandomForestClassifier:
             acc = accuracy_score(y_out_of_bag, y_pred)
             err = 1 - acc
         
-            # append the trained tree to our list of trees (our growing forest).
+            # append the trained tree and its acc to our tuple of trees (our growing forest).
             candidate_trees.append((tree, acc))
         
         # once all N trees have been trained and evaluated against the bootstrap test samples, we want to choose the M most accurate to form the forest.

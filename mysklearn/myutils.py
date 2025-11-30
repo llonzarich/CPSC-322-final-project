@@ -25,7 +25,7 @@ def get_frequency(column):
     return freq
 
 
-def select_attribute(instances, attributes, header, attribute_domains, F=None):
+def select_attribute(instances, attributes, header, attribute_domains, F):
     '''
         Purpose: - implement the genereal E_new algorithm to select an attribute to split on.
                  - whichever attribute has the lowest E_new val is the chosen attribute for splitting.
@@ -42,21 +42,20 @@ def select_attribute(instances, attributes, header, attribute_domains, F=None):
             header (list): a fixed list of headers
             attribute_domains (dict): a dictionary that stores the unique values that each attribute can take on.
             F (int): - the number of randomly selected attributes (from the remaining attributes) to be used as candidates for the split.
-                     - if None, let F be the number of attributes (the remaining attributes to be split on).
 
         Returns:
             selected_att (obj): - the name of the attribute to split on.
                                 - example: "att0"
 
     '''
-    # set the number of attribute to be used as candidates for the next split.
-    if F is not None and F < len(attributes):
-        num_attribute_candidates = F 
-    else:
-        F = len(attributes)
-        num_attribute_candidates = F
+    # # set the number of attribute to be used as candidates for the next split.
+    # if F is not None and F < len(attributes):
+    #     num_attribute_candidates = F 
+    # else:
+    #     F = len(attributes)
+    #     num_attribute_candidates = F
 
-    # define the attribute candidates.
+    # select the F attribute candidates.
     attribute_candidates = np.random.choice(attributes, size=F, replace=False)
 
     best_attribute = []
@@ -205,7 +204,7 @@ def all_same_class(instances):
 
 
 
-def tdidt(current_instances, available_attributes, header, attribute_domains, parent_instances=None):
+def tdidt(current_instances, available_attributes, header, attribute_domains, parent_instances=None, F=None):
     '''
         Purpose: recursively building a decision tree using the TDIDT algorithm
 
@@ -233,11 +232,14 @@ def tdidt(current_instances, available_attributes, header, attribute_domains, pa
     if parent_instances is None:
         parent_instances = current_instances
 
+    # set the number of attributes to consider as candidates for selecting an attribute to split on.
+    if F is None:
+        F = max(1, math.floor(math.sqrt(len(available_attributes))))
+    else:
+        F = min(F, len(available_attributes))
+
     # display the availible attributes that we can split on (aka, the attributes that haven't been used as a partition yet).
     # print("available attributes:", available_attributes)
-
-    # set the number of attributes to consider as candidates for selecting an attribute to split on.
-    F = math.floor(math.sqrt(len(available_attributes)))
     
     # select an attribute to split on.
     split_attribute = select_attribute(current_instances, available_attributes, header, attribute_domains, F)
@@ -367,7 +369,7 @@ def tdidt(current_instances, available_attributes, header, attribute_domains, pa
         else: # if none of the base cases apply, we recurse!!
             # print("ATTRIBUTE VALUE (NEST FOR TREE DICTIONARY): ", value_subtree)
 
-            subtree = tdidt(att_partition, available_attributes.copy(), header, attribute_domains, current_instances)
+            subtree = tdidt(att_partition, available_attributes.copy(), header, attribute_domains, current_instances, F=F)
             
             value_subtree.append(subtree)
             tree.append(value_subtree)
