@@ -41,20 +41,13 @@ def select_attribute(instances, attributes, header, attribute_domains, F):
                                - example: ["att0", "att1"]
             header (list): a fixed list of headers
             attribute_domains (dict): a dictionary that stores the unique values that each attribute can take on.
-            F (int): - the number of randomly selected attributes (from the remaining attributes) to be used as candidates for the split.
+            F (int): the number of randomly selected attributes (from the remaining attributes) to be used as candidates for the split.
 
         Returns:
             selected_att (obj): - the name of the attribute to split on.
                                 - example: "att0"
 
     '''
-    # # set the number of attribute to be used as candidates for the next split.
-    # if F is not None and F < len(attributes):
-    #     num_attribute_candidates = F 
-    # else:
-    #     F = len(attributes)
-    #     num_attribute_candidates = F
-
     # select the F attribute candidates.
     attribute_candidates = np.random.choice(attributes, size=F, replace=False)
 

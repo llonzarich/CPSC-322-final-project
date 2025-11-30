@@ -18,7 +18,7 @@ class MyDecisionTreeClassifier:
             y_train (list of obj): - The target y values (labels corresponding to X_train).
                                    - has shape: y_train is n_samples
             tree (nested list): The extracted tree model.
-            F (int): the number of attributes to use consider for the split at each node when building the decision tree.
+            F (int): the number of randomly chosen attributes to consider for the split at each node when building the decision tree.
         Notes:
             Loosely based on sklearn's DecisionTreeClassifier: https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
             Terminology: instance = sample = row and attribute = feature = column

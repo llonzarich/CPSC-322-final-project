@@ -1,7 +1,7 @@
 import numpy as np
 
 
-# =============== RANDOM FOREST CLASSIFIER SECTION =====================
+# =============== RANDOM FOREST CLASSIFIER SECTION ======================
 
 def bootstrap_sample(X, y=None, n_samples=None, random_state=None):
     """
