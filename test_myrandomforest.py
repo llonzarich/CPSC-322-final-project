@@ -1,5 +1,5 @@
 import numpy as np
-from mysklearn.myclassifiers import MyRandomForestClassifier
+from mysklearn.myclassifiers import MyDecisionTreeClassifier, MyRandomForestClassifier
 from mysklearn import myutils
 
 def test_generate_test_split():
@@ -70,15 +70,24 @@ def test_random_forest_classifier_fit():
             ["Junior", "Python", "no", "yes"] # False
         ]
     y_train_interview = ["False", "False", "True", "True", "True", "False", "True", "False", "True", "True", "True", "True", "True", "False"]
-    
+
     myForest = MyRandomForestClassifier(N=20, M=7, F=2)
     myForest.fit(X_train_interview, y_train_interview)
 
     # retrieve the forest from the fit() method.
     forest = myForest.trees
 
-    assert forest is not None
-    assert forest == forest_interview
+    assert forest is not None # make sure the forest has trees (the forest should be a list of tree obj's)
+    assert len(forest) == 7   # make sure the forest has the correct # of trees.
+    
+    # make sure each tree is a decision tree class obj.
+    for tree in forest:
+        assert isinstance(tree, MyDecisionTreeClassifier)
+
+    # make sure each tree isn't empty.
+    for tree in forest:
+        assert tree.tree is not None
+
 
 
 def test_random_forest_classifier_predict():
