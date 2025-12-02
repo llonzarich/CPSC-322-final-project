@@ -1,4 +1,3 @@
-import numpy as np
 from mysklearn.myclassifiers import MyDecisionTreeClassifier, MyRandomForestClassifier
 from mysklearn import myutils
 
@@ -72,10 +71,11 @@ def test_random_forest_classifier_fit():
     y_train_interview = ["False", "False", "True", "True", "True", "False", "True", "False", "True", "True", "True", "True", "True", "False"]
 
     myForest = MyRandomForestClassifier(N=20, M=7, F=2)
-    myForest.fit(X_train_interview, y_train_interview)
+    myForest.fit(X_train_interview, y_train_interview, random_state=8)
 
     # retrieve the forest from the fit() method.
     forest = myForest.trees
+
 
     assert forest is not None # make sure the forest has trees (the forest should be a list of tree obj's)
     assert len(forest) == 7   # make sure the forest has the correct # of trees.
@@ -91,4 +91,42 @@ def test_random_forest_classifier_fit():
 
 
 def test_random_forest_classifier_predict():
-    pass
+    X_train_interview = [
+            ["Senior", "Java", "no", "no"], # False
+            ["Senior", "Java", "no", "yes"], # False
+            ["Mid", "Python", "no", "no"], # True
+            ["Junior", "Python", "no", "no"], # True
+            ["Junior", "R", "yes", "no"], # True
+            ["Junior", "R", "yes", "yes"], # False
+            ["Mid", "R", "yes", "yes"], # True
+            ["Senior", "Python", "no", "no"], # False
+            ["Senior", "R", "yes", "no"], # True
+            ["Junior", "Python", "yes", "no"], # True
+            ["Senior", "Python", "yes", "yes"], # True
+            ["Mid", "Python", "no", "yes"], # True
+            ["Mid", "Java", "yes", "no"], # True
+            ["Junior", "Python", "no", "yes"] # False
+        ]
+    y_train_interview = ["False", "False", "True", "True", "True", "False", "True", "False", "True", "True", "True", "True", "True", "False"]
+
+    myForest = MyRandomForestClassifier(N=20, M=7, F=2)
+    myForest.fit(X_train_interview, y_train_interview, random_state=8)
+
+    assert len(myForest.predict()) == 5 # make sure there are 5 class predictions (0.33 of original dataset, as divided)
+
+    y_pred = []
+    for test in myForest.X_test:
+        # finds all predictions from all M trees
+        test_predictions = []
+        for tree in myForest.trees:
+            test_predictions.extend(tree.predict([test]))
+        
+        mfv = {} # finds most frequent value/predicted class label
+        for pred in test_predictions:
+            if pred not in mfv:
+                mfv[pred] = 0
+            mfv[pred] += 1
+        y_pred.append(max(mfv, key=mfv.get))
+
+    assert myForest.predict() == y_pred # checks the most frequent class label for each tests' forest is set as the class label for the test instance
+

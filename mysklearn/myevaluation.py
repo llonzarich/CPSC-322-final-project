@@ -56,6 +56,39 @@ def bootstrap_sample(X, y=None, n_samples=None, random_state=None):
 
     return X_sample, X_out_of_bag, y_sample, y_out_of_bag
 
+def accuracy_score(y_true, y_pred, normalize=True):
+    """
+        Purpose: Compute the classification prediction accuracy score.
+
+        Args:
+            y_true (list of obj): - The ground_truth target y values
+                                  - has shape: n_samples
+            y_pred (list of obj): - The predicted target y values (corresponding to y_true)
+                                 - has shape: n_samples
+            normalize(bool): - If False, return the number of correctly classified samples.
+                             - Otherwise, return the fraction of correctly classified samples.
+
+        Returns:
+            score (float): If normalize == True, return the fraction of correctly classified samples (float),
+                        otherwise, return the number of correctly classified samples (int).
+
+        Notes: - Loosely based on sklearn's accuracy_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
+               - acc = (TP + TN) / (P + N) = (TP + TN) / (TP + FP + TN + FN)
+    """
+    score = 0.0 # to store the number of correctly classified samples as a float.
+    correct = 0 # to keep track of the total number of correctly predicted samples. This = (TP + TN)
+
+    for idx in range(len(y_true)):
+        if y_true[idx] == y_pred[idx]:
+            correct += 1
+
+    if normalize is True:
+        score = correct / len(y_true) # ensure score is the fraction / proportion of correctly classified samples (float).
+    else:
+        score = correct # ensure score is the number of correctly classified samples (int).
+
+    return score
+
 # =============== NAIVE BAYES CLASSIFIER SECTION =====================
 
 
