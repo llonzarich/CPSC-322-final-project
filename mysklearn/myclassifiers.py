@@ -1,113 +1,172 @@
 import numpy as np
-import math
 
 from mysklearn import myutils
-from mysklearn.myutils import tdidt, tdidt_predict
-
 from mysklearn import myevaluation
-from mysklearn.myevaluation import bootstrap_sample, accuracy_score
-
 
 class MyDecisionTreeClassifier:
-    """
-        Purpose: Represents a decision tree classifier.
+    """Represents a decision tree classifier.
 
-        Attributes:
-            X_train (list of list of obj): - The list of training instances (samples).
-                                           - has shape: (n_train_samples, n_features)
-            y_train (list of obj): - The target y values (labels corresponding to X_train).
-                                   - has shape: y_train is n_samples
-            tree (nested list): The extracted tree model.
-            F (int): the number of randomly chosen attributes to consider for the split at each node when building the decision tree.
-        Notes:
-            Loosely based on sklearn's DecisionTreeClassifier: https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
-            Terminology: instance = sample = row and attribute = feature = column
+    Attributes:
+        X_train(list of list of obj): The list of training instances (samples).
+                The shape of X_train is (n_train_samples, n_features)
+        y_train(list of obj): The target y values (parallel to X_train).
+            The shape of y_train is n_samples
+        tree(nested list): The extracted tree model.
+
+    Notes:
+        Loosely based on sklearn's DecisionTreeClassifier:
+            https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
+        Terminology: instance = sample = row and attribute = feature = column
     """
-    def __init__(self, F=None):
-        """
-            Purpose: Initializer for MyDecisionTreeClassifier.
+    def __init__(self, F = None):
+        """Initializer for MyDecisionTreeClassifier.
+
+            Args: 
+                F (int): - the number of randomly chosen attributes to be used as candidates for the split
+                         - used for when the Random Forest Classifier class creates a Decision Tree object
+                         -- default is None (for when the Decision Tree is not used for a Random Forest)
         """
         self.X_train = None
         self.y_train = None
         self.tree = None
         self.F = F
 
-
-    def fit(self, X_train, y_train):
-        """
-            Purpose: Fits a decision tree classifier to X_train and y_train using the TDIDT (top down induction of decision tree) algorithm.
-
-            Args:
-                X_train (list of list of obj): - The list of training instances (samples).
-                                               - has shape: (n_train_samples, n_features)
-                y_train (list of obj): - The target y values (labels corresponding to X_train)
-                                       - has shape: n_train_samples
-
-            Notes:
-                - Since TDIDT is an eager learning algorithm, this method builds a decision tree model from the training data.
-                - Build a decision tree using the nested list representation described in class.
-                - On a majority vote tie, choose first attribute value based on attribute domain ordering.
-                - Store the tree in the tree attribute.
-                - Use attribute indexes to construct default attribute names (e.g. "att0", "att1", ...).
-        
-            - the goal of fit is to create the splits (the nested list) and decide probabilites at each leaf node.
-        """
-        self.X_train = X_train
-        self.y_train = y_train
-        F = self.F
-
-        # find number of features in list (by looking at the length of the first row in X_train).
-        num_attributes = len(X_train[0])
-
-        # get all unique attributes and sort them alphabetically.
-        header = [f"att{i}" for i in range(num_attributes)]
-
-        # stich together X_train and y_train
-        train_data = [X_train[i] + [y_train[i]] for i in range(len(X_train))]
-        
-        # build attribute domains (the set of all values that an attribut can take)
-        attribute_domains = {} # initialize a dict to store each attribute's unique values (i.e., att1="job_status" has values 1, 2, 3)
-        
-        # iterate through each col (each attribute corresponds to 1 col) and find unique values in that col using list(set())
-        for idx in range(num_attributes):
-            attribute_domains[header[idx]] = sorted(list(set(row[idx] for row in X_train)))
-        
-        # make a copy a header, b/c python is pass by object reference and tdidt will be removing attributes from available_attributes
-        available_attributes = header.copy()
-        
-        # create the decision tree using top down induction decision tree (tdidt)
-        # F = math.floor(math.sqrt(num_attributes)) # set the number of attributes to consider as candidates for selecting an attribute to split on at each node.
-        self.tree = tdidt(train_data, available_attributes, header, attribute_domains, F)
-
-        
-
-    def predict(self, X_test):
-        """
-            Purpose: Makes predictions for test instances in X_test.
+    def fit(self, X_train, y_train, random_state = None):
+        """Fits a decision tree classifier to X_train and y_train using the TDIDT
+        (top down induction of decision tree) algorithm.
 
         Args:
-            X_test (list of list of obj): - The list of testing samples
-                                          - has shape: (n_test_samples, n_features)
+            X_train(list of list of obj): The list of training instances (samples).
+                The shape of X_train is (n_train_samples, n_features)
+            y_train(list of obj): The target y values (parallel to X_train)
+                The shape of y_train is n_train_samples
+
+        Notes:
+            Since TDIDT is an eager learning algorithm, this method builds a decision tree model
+                from the training data.
+            Build a decision tree using the nested list representation described in class.
+            On a majority vote tie, choose first attribute value based on attribute domain ordering.
+            Store the tree in the tree attribute.
+            Use attribute indexes to construct default attribute names (e.g. "att0", "att1", ...).
+
+            Recursively calls build_tree function
+        """
+
+        self.X_train = X_train
+        self.y_train = y_train
+        self.tree = []
+
+        if random_state is not None:
+            np.random.seed(random_state)
+
+        def build_tree(X_train, y_train, current_att, prev_length):
+            """Recursively builds the decision tree using X_train and y_train using the TDIDT
+
+            Args:
+                X_train(list of list of obj): The list of training instances (samples).
+                    The shape of X_train is (n_train_samples, n_features)
+                    X_train gets split up recursively
+                y_train(list of obj): The target y values (parallel to X_train)
+                    The shape of y_train is n_train_samples
+                    y_train gets split up recursively
+                current_att(list of int): The size of the current X_train:
+                    Used to check if the partition is empty
+                prev_length(int): the number of instances in the previous attribute
+                    to calculate the fraction
+
+            Notes:
+                This is a recursive function
+            """
+            # CASE 1: all class labels of the partition are the same
+            # ==> make a leaf node
+            if myutils.all_same_values(y_train):
+                return ["Leaf", y_train[0], len(y_train), prev_length]
+            
+            # CASE 2: there are no more attributes to split on, and still don't have the same class labels
+            # ==> take the most frequent class label, and if there is a tie: take the class label that comes first alphabetically
+            if len(current_att) == 0: # returns leaf of most frequent class label/first alphabetically
+                return ["Leaf", myutils.most_freq_class(y_train), len(y_train), prev_length]
+
+            # for the random random forest classifier: selects F random attributes as partition candidate attributes 
+            if self.F is not None:
+                temp_attr = current_att[:]
+                np.random.shuffle(temp_attr)
+                temp_attr = temp_attr[:self.F]
+            else:
+                temp_attr = current_att[:]
+
+            # finds index of attribute with lowest entropy
+            att_to_split_index = myutils.attribute_to_split(X_train, y_train, temp_attr) 
+            tree = ["Attribute", "att" + str(att_to_split_index)]
+
+            all_attr_dict = myutils.get_frequency(myutils.get_col(self.X_train, att_to_split_index)) 
+            all_attr = sorted(all_attr_dict) # sorts attributes alphabetically, so first alphabetical attribute shows up first
+
+            subsets = myutils.partition_data(X_train, y_train, att_to_split_index) # splits data based on attribute with lowest entropy
+
+            # CASE 3: not all attribute values appear in the training set
+            # ==> backtrack and create leaf node (instead of splitting further) with most frequent class label
+            curr_row = []
+            for key in subsets:
+                curr_row.extend(subsets[key][0]) # gets all X attribute values from current row
+            
+            all_col = myutils.get_col(curr_row, att_to_split_index)
+            for attr in all_attr: 
+                if attr not in all_col:
+                    subsets[attr] = ([],[]) # used to check if all values for an attribute appears in partition
+            
+            for subset in subsets: # if not all values appear for partition, a leaf is returned of the most frequent value
+                if len(subsets[subset][0]) == 0:
+                    return ["Leaf", myutils.most_freq_class(y_train), len(y_train), prev_length]
+            
+            prev_length = len(y_train) # used for denominator for leaf node
+
+            # CASE 4: still have attributes to partition on, all attribute values exist in training set, training set does not have same class label
+            # ==> Recurse!
+            for subset in subsets:
+                X_temp = subsets[subset][0] # all x data of partition
+                y_temp = subsets[subset][1] # all y data of partition
+
+                attribute_copied = current_att.copy()
+                attribute_copied.remove(att_to_split_index) # removes attribute, so it is not considered when calculating entropy of further subtree
+                sub_tree = build_tree(X_temp, y_temp, attribute_copied, prev_length)
+            
+                tree.append(["Value", subset, sub_tree]) # appends attribute to a value
+
+            return tree
+
+        self.tree = build_tree(X_train, y_train, list(range(len(X_train[0]))), len(y_train))
+
+    def predict(self, X_test):
+        """Makes predictions for test instances in X_test.
+
+        Args:
+            X_test(list of list of obj): The list of testing samples
+                The shape of X_test is (n_test_samples, n_features)
 
         Returns:
-            y_predicted (list of obj): The predicted target y values (labels corresponding to X_test)
+            y_predicted(list of obj): The predicted target y values (parallel to X_test)
         """
-        # find number of features in list.
-        num_attributes = len(X_test[0])
+        
+        y_pred = []
 
-        # get all unique attributes and sort them alphabetically.
-        header = [f"att{i}" for i in range(num_attributes)]
+        for test in X_test:
+            curr_tree = self.tree
+            
+            while curr_tree[0] != "Leaf": # continues down tree until it reaches a leaf node
+                
+                if curr_tree[0] == "Attribute":
+                    attr_num = int(curr_tree[1][3]) # saves attribute index to check if value in X_test is same as value in attribute
 
-        y_predicted = []
+                curr_subtree = curr_tree[2:]
+                for sub in curr_subtree: # finds the attribute value that equals the test's value for the same attribute
+                    if sub[1] == test[attr_num]:
+                        curr_tree = sub[2]
 
-        # generate a prediction for each instance in the test set (the instances we want to classify)
-        for instance in X_test:
-            pred = tdidt_predict(self.tree, instance, header)
-            y_predicted.append(pred)
+                if curr_tree[0] == "Leaf":
+                    y_pred.append(curr_tree[1])
 
-        return y_predicted 
-
-
+        return y_pred 
 
 
 class MyRandomForestClassifier:
@@ -132,7 +191,7 @@ class MyRandomForestClassifier:
             Notes:
                 Loosely based on sklearn's RandomForestClassifier: https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
     """
-    # def __init__(self, N, M, F):
+
     def __init__(self, N=100, M=None, F=None):
         """
             Purpose: Initializer for MyRandomForestClassifier
@@ -168,7 +227,8 @@ class MyRandomForestClassifier:
             Notes: - test set = 1/3 of original dataset.
                    - train set = remaining 2/3 of original dataset.
         """
-        np.random.seed(random_state)
+        if random_state is not None:
+            np.random.seed(random_state)
 
         y_freq = myutils.get_frequency(y) # gets the frequency of each unique class label
 
@@ -218,10 +278,8 @@ class MyRandomForestClassifier:
             rand_index = np.random.randint(0, len(X_train))
             self.X_train.append(X_train.pop(rand_index))
             self.y_train.append(y_train.pop(rand_index))
-
         
-
-    def fit(self, X_train, y_train):
+    def fit(self, X_train, y_train, test_size = 0.33, random_state = None):
         '''
             Purpose: fits a random forest classifier to X_train and y_train using the TDIDT algorithm
 
@@ -230,69 +288,76 @@ class MyRandomForestClassifier:
                                                - has shape: (n_train_samples, n_features)
                 y_train (list of obj): - The target y values (labels corresponding to X_train)
                                        - has shape: n_train_samples
-                M (int): - the number of trees to be included in the forest. 
-                         - M is a subset of N (where N is the total number of trees trained and evaluated)
-                         - necessary because we only want to take a certain number of the best trees to for our forest.
-                         - if None, let M be N-1 (1 less than the number of trees because M < N)
+                test_size (float): - the proportion of the dataset to be in the test set
+                                   - used to feed into the generate_test_class function
+                random_state (int) - integer used for seeding a random number generator
+                                     for reproducible results
+                                   - used to feed into the Decision Tree class, for when picking F
+                                     random attributes to use as candidates to partition data on
             Notes: - construct N decision trees, choose the M most accurate trees of these N to form the forest which will be used during classification tasks.
             
         '''
-        N = self.N
-        M = self.M if self.M is not None else N-1
-        F = self.F
-
-        candidate_trees = [] # to store the M best trees (M subset of N) (N = number of trees trained))
-
-        # generate test sets (1/3 of dataset) and train sets (remaining 2/3 of dataset).
-        self.generate_test_set(X_train, y_train)
-        X_train = self.X_train
-        y_train = self.y_train
-
-        # generate, train, and evaluate trees for the forest.
-        for i in range(N):
-
-            # generate random subsamples of data for training and evaluating the tree.
-            X_sample, X_out_of_bag, y_sample, y_out_of_bag = bootstrap_sample(X_train, y_train)
-
-            # create a new tree object for the forest.
-            tree = MyDecisionTreeClassifier(F=F)
-
-            # train the tree on the training data (samples and corresp. labels).
-            tree.fit(X_sample, y_sample)
-
-            # predict confidence rating for test instances. 
-            y_pred = tree.predict(X_out_of_bag)
-
-            # compute the accuracy and error rate of the model by comparing true and predicted conf. ratings.
-            acc = accuracy_score(y_out_of_bag, y_pred)
-            err = 1 - acc
         
-            # append the trained tree and its acc to our tuple of trees (our growing forest).
+        candidate_trees = []
+        
+        # if M is not set, M is N - 1 (1 less than the number of trees because M < N (M is a subset to N))
+        if self.M is None: 
+            self.M = self.N - 1
+
+        # generate test sets (1/3 of dataset) and train sets (remaining 2/3 of dataset)
+        self.generate_test_set(X_train, y_train, test_size, random_state=random_state)
+
+        # generate, train, and evaluate trees for the forest (up to N trees)
+        for __ in range(self.N):
+
+            # generate random subsamples of data for training and evaluating the tree
+            X_train, X_test, y_train, y_test = myevaluation.bootstrap_sample(self.X_train, self.y_train, random_state=random_state)
+
+            # create a new tree object for the forest
+            tree = MyDecisionTreeClassifier(F = self.F)
+            
+            # train the tree on the training data (samples and corresp. labels)
+            tree.fit(X_train, y_train)
+
+            # predict confidence rating for test instances
+            y_pred = tree.predict(X_test)
+
+            # compute the accuracy of the model compared to true and predicted class labels
+            acc = myevaluation.accuracy_score(y_test, y_pred)
+
+            # append the trained tree and its accuracy score to tuple of trees (growing forest)
             candidate_trees.append((tree, acc))
+
+        # once all N trees have been trained and evaluted against the bootstrap test samples, want to choose
+        # the M most accurate to form the forest
+        candidate_trees.sort(key = lambda x: x[1], reverse = True) # sort trees by accuracy (highest --> lowest)
+        self.trees = [tree for tree, __ in candidate_trees[:self.M]] # use the first M trees (the M trees with the highest accuracy)
+                                                                     # to form the forest
+    
+    def predict(self):
+        '''
+            Purpose: predicts the class labels of X_test, found earlier when fitting the Random Forestb
         
-        # once all N trees have been trained and evaluated against the bootstrap test samples, we want to choose the M most accurate to form the forest.
-        candidate_trees.sort(key=lambda x: x[1], reverse=True) # sort trees by acc (highest --> lowest).
-        self.trees = [tree for tree, acc in candidate_trees[:M]] # use the first M trees (the M trees with the highest acc) to form the forest.
+            Returns: y_pred (list of obj): - the predicted class labels, parallel to the x-values in the testing set
 
-
-    def predict(self, X_test):
+            Notes: - there are no arguments because the dataset has already been divided into training
+                     and testing sets when fitting the classifier (the generate_test_set function has 
+                     already been called)
+        '''
         y_pred = []
-        
-        for test in X_test:
-            print(f"Current test: {test}")
+
+        # iterate through each test in X_test, as each test instance goes through M decision trees
+        for test in self.X_test:
+
             curr_y_pred = []
-            for tree in self.trees:
-                print(tree.tree)
+            for tree in self.trees: # iterate through each tree, and saving the predicted class label for each tree
                 curr_y_pred.extend(tree.predict([test]))
-                print(f"curr tree prediction: {tree.predict([test])}")
-                
-                
+            
+            # find the most frequent class label
             y_freq = myutils.get_frequency(curr_y_pred)
             y_pred.append(max(y_freq, key = y_freq.get))
-            print(f"Prediction: {max(y_freq, key = y_freq.get)}")
         
         return y_pred
-
 
 class MyNaiveBayesClassifier:
     """Represents a Naive Bayes classifier.
@@ -344,8 +409,7 @@ class MyNaiveBayesClassifier:
         # following loop creates a 2d list of each column (instead of each row)
         columns = []
         for col_index in range(len(X_train[0])):
-            column = [X_train[row_index][col_index] for row_index in range(len(X_train))] 
-            columns.append(column)
+            columns.append(myutils.get_col(X_train, col_index))
         
         class_vals = {}
         for key in classes.keys(): # for each unique class

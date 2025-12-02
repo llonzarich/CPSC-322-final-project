@@ -56,7 +56,6 @@ def bootstrap_sample(X, y=None, n_samples=None, random_state=None):
 
     return X_sample, X_out_of_bag, y_sample, y_out_of_bag
 
-
 def accuracy_score(y_true, y_pred, normalize=True):
     """
         Purpose: Compute the classification prediction accuracy score.
@@ -78,7 +77,6 @@ def accuracy_score(y_true, y_pred, normalize=True):
     """
     score = 0.0 # to store the number of correctly classified samples as a float.
     correct = 0 # to keep track of the total number of correctly predicted samples. This = (TP + TN)
-    num_samples = len(y_true) # the number of samples in the dataset. This = (P + N).
 
     for idx in range(len(y_true)):
         if y_true[idx] == y_pred[idx]:
@@ -90,11 +88,6 @@ def accuracy_score(y_true, y_pred, normalize=True):
         score = correct # ensure score is the number of correctly classified samples (int).
 
     return score
-
-
-
-
-
 
 # =============== NAIVE BAYES CLASSIFIER SECTION =====================
 
