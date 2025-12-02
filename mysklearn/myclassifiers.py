@@ -275,8 +275,24 @@ class MyRandomForestClassifier:
         self.trees = [tree for tree, acc in candidate_trees[:M]] # use the first M trees (the M trees with the highest acc) to form the forest.
 
 
-    def predict():
-        pass
+    def predict(self, X_test):
+        y_pred = []
+        
+        for test in X_test:
+            print(f"Current test: {test}")
+            curr_y_pred = []
+            for tree in self.trees:
+                print(tree.tree)
+                curr_y_pred.extend(tree.predict([test]))
+                print(f"curr tree prediction: {tree.predict([test])}")
+                
+                
+            y_freq = myutils.get_frequency(curr_y_pred)
+            y_pred.append(max(y_freq, key = y_freq.get))
+            print(f"Prediction: {max(y_freq, key = y_freq.get)}")
+        
+        return y_pred
+
 
 class MyNaiveBayesClassifier:
     """Represents a Naive Bayes classifier.
