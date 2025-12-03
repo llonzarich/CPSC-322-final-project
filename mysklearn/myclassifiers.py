@@ -80,11 +80,13 @@ class MyDecisionTreeClassifier:
             # CASE 1: all class labels of the partition are the same
             # ==> make a leaf node
             if myutils.all_same_values(y_train):
+                # print("1")
                 return ["Leaf", y_train[0], len(y_train), prev_length]
             
             # CASE 2: there are no more attributes to split on, and still don't have the same class labels
             # ==> take the most frequent class label, and if there is a tie: take the class label that comes first alphabetically
             if len(current_att) == 0: # returns leaf of most frequent class label/first alphabetically
+                # print("2")
                 return ["Leaf", myutils.most_freq_class(y_train), len(y_train), prev_length]
 
             # for the random random forest classifier: selects F random attributes as partition candidate attributes 
@@ -96,14 +98,17 @@ class MyDecisionTreeClassifier:
                 temp_attr = current_att[:]
 
             # finds index of attribute with lowest entropy
+            # print("3")
+            # print(f"current_att: {current_att}")
             att_to_split_index = myutils.attribute_to_split(X_train, y_train, temp_attr) 
+            
             tree = ["Attribute", "att" + str(att_to_split_index)]
 
             all_attr_dict = myutils.get_frequency(myutils.get_col(self.X_train, att_to_split_index)) 
             all_attr = sorted(all_attr_dict) # sorts attributes alphabetically, so first alphabetical attribute shows up first
-
+            
             subsets = myutils.partition_data(X_train, y_train, att_to_split_index) # splits data based on attribute with lowest entropy
-
+            
             # CASE 3: not all attribute values appear in the training set
             # ==> backtrack and create leaf node (instead of splitting further) with most frequent class label
             curr_row = []
@@ -309,6 +314,7 @@ class MyRandomForestClassifier:
 
         # generate, train, and evaluate trees for the forest (up to N trees)
         for __ in range(self.N):
+            print(f"current N: {self.N}")
 
             # generate random subsamples of data for training and evaluating the tree
             X_train, X_test, y_train, y_test = myevaluation.bootstrap_sample(self.X_train, self.y_train, random_state=random_state)
@@ -319,12 +325,14 @@ class MyRandomForestClassifier:
             # train the tree on the training data (samples and corresp. labels)
             tree.fit(X_train, y_train)
 
+            print(tree.tree)
+
             # predict confidence rating for test instances
             y_pred = tree.predict(X_test)
 
             # compute the accuracy of the model compared to true and predicted class labels
             acc = myevaluation.accuracy_score(y_test, y_pred)
-
+            print(f"current acc: {acc}")
             # append the trained tree and its accuracy score to tuple of trees (growing forest)
             candidate_trees.append((tree, acc))
 

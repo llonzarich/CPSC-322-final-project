@@ -54,18 +54,18 @@ def attribute_to_split(X_data, y_data, curr_attr):
     """
 
     all_entropy = []
+    
 
     for col in range(len(X_data[0])): # calculates the entropies of all the attributes
         curr_col = []
         for row in X_data:
             curr_col.append(row[col])
-        
         all_entropy.append(calculate_entropy(curr_col, y_data))
-
+    
     for index in range(len(all_entropy)):
         if index not in curr_attr: 
             all_entropy[index] = 10 # sets the entropy of an already picked attribute to 10, so it does not get picked 
-
+    
     return all_entropy.index(min(all_entropy))
 
 def calculate_entropy(x_attribute, y_data):
