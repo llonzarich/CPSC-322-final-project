@@ -383,6 +383,49 @@ class MyPyTable:
         return summary_stats
 
     def get_columns(self, col_identifiers, include_missing_values = True):
+        """Extracts multiple columns from the table data as a 2D list
+
+        Parameters:
+            col_identifiers (list of str or int): string for column names or int
+                for column indices
+            include_missing_values (bool): True if missing values ("NA") should be
+                included in any of the returning columns, False otherwise.
+
+        Returns:
+            list of list of obj: 2D list of values in all the specified columns
+        
+        Raises:
+            ValueError: if col_identifier is invalid
+            IndexError: if col_identifier is not a valid index value
+        """
+        
+        return_columns = []
+        col_indexes = []
+
+        if type(col_identifiers[0]) is str: # checks if the given columns are in str or int (col name or index of columns)
+            try:
+                for col_name in col_identifiers:
+                    col_indexes.append(self.column_names.index(col_name)) # adds the column value for a row into a list, so the resulting list is 2D
+            except ValueError:
+                print("ERROR: not all columns given are in the data file") # if the column string given is not in the column
+        
+        col_indexes.sort() # in case a user inputs out-of-order indices
+
+        for col in col_indexes:
+            curr_row = [] 
+            try:
+                for row in self.data:
+                    if(not include_missing_values and row[col] == "NA"): # checks if user does not want to include missing values, and a row in a given column has an "NA"
+                        pass
+                    else:
+                        curr_row.append(row[col])
+                return_columns.append(curr_row)
+            except IndexError:
+                print("ERROR: this index is not in the column indexes") # if the index is out of scope
+
+        return return_columns
+
+    def get_column_rows(self, col_identifiers, include_missing_values = True):
             """Extracts multiple columns from the table data as a 2D list
 
             Parameters:

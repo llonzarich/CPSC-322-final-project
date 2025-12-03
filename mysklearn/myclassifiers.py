@@ -164,9 +164,17 @@ class MyDecisionTreeClassifier:
                     attr_num = int(curr_tree[1][3]) # saves attribute index to check if value in X_test is same as value in attribute
 
                 curr_subtree = curr_tree[2:]
+                found = False
                 for sub in curr_subtree: # finds the attribute value that equals the test's value for the same attribute
                     if sub[1] == test[attr_num]:
                         curr_tree = sub[2]
+                        found = True
+                if not found:
+                    maj_value = []
+                    for sub in curr_subtree:
+                        maj_value.append(sub[2][1])
+                    y_pred.append(myutils.most_freq_class(maj_value))
+                    break
 
                 if curr_tree[0] == "Leaf":
                     y_pred.append(curr_tree[1])
