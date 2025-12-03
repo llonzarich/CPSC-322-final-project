@@ -168,4 +168,10 @@ def most_freq_class(y_data):
     indices.sort() # if there is a tie in most frequent class label, takes the first alphabetically
 
     return indices[0]
+
+def my_discretizer(value):
+    return int(round(value, 1) * 10)
+
+
+
     

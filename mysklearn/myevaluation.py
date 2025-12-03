@@ -76,7 +76,6 @@ def accuracy_score(y_true, y_pred, normalize=True):
                - acc = (TP + TN) / (P + N) = (TP + TN) / (TP + FP + TN + FN)
     """
 
-    print("this works")
     score = 0.0 # to store the number of correctly classified samples as a float.
     correct = 0 # to keep track of the total number of correctly predicted samples. This = (TP + TN)
 

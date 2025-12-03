@@ -25,6 +25,30 @@ class MyPyTable:
             data = []
         self.data = copy.deepcopy(data)
 
+    def new_deep_copy(self):
+        """ copies a mypytable object for editing, so if certain rows are deleted (if program deletes rows with NA), the original object
+        is still available that contains the NA values
+    
+    Parameters: 
+        table (mypytable object): an object from the mypytable class, used to copy from
+
+    Returns:
+        object: a mypytable object that is a deep copy of another mypytable object passed into the method
+
+    """
+        copied_col_names = []
+        copied_data = []
+
+        
+        for item in self.column_names:
+            copied_col_names.append(item)
+        
+        for row in self.data:
+            copied_data.append(row)
+
+        new_dataset = MyPyTable(copied_col_names, copied_data)
+
+        return new_dataset
 
     def pretty_print(self):
         """Prints the table in a nicely formatted grid structure."""

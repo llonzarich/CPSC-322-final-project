@@ -314,7 +314,6 @@ class MyRandomForestClassifier:
 
         # generate, train, and evaluate trees for the forest (up to N trees)
         for __ in range(self.N):
-            print(f"current N: {self.N}")
 
             # generate random subsamples of data for training and evaluating the tree
             X_train, X_test, y_train, y_test = myevaluation.bootstrap_sample(self.X_train, self.y_train, random_state=random_state)
@@ -325,14 +324,12 @@ class MyRandomForestClassifier:
             # train the tree on the training data (samples and corresp. labels)
             tree.fit(X_train, y_train)
 
-            print(tree.tree)
-
             # predict confidence rating for test instances
             y_pred = tree.predict(X_test)
 
             # compute the accuracy of the model compared to true and predicted class labels
             acc = myevaluation.accuracy_score(y_test, y_pred)
-            print(f"current acc: {acc}")
+            
             # append the trained tree and its accuracy score to tuple of trees (growing forest)
             candidate_trees.append((tree, acc))
 
