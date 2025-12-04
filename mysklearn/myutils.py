@@ -173,8 +173,8 @@ def most_freq_class(y_data):
 
 
 def my_discretizer(value):
-    for i in range(1, 11):
-        if int(round(value, 1)) <= i/10:
+    for i in list(range(1, 11)):
+        if float(round(value, 1)) <= (i/10):
             return i
 
 

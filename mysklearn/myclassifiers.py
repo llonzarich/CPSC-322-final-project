@@ -352,7 +352,7 @@ class MyRandomForestClassifier:
         self.trees = [tree for tree, __ in candidate_trees[:self.M]] # use the first M trees (the M trees with the highest accuracy)
                                                                      # to form the forest
     
-    def predict(self, X_test: None):
+    def predict(self, X_test = None):
         '''
             Purpose: predicts the class labels of X_test, found earlier when fitting the Random Forestb
         
