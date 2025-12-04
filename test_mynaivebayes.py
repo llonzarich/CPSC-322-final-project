@@ -1,271 +1,209 @@
-import numpy as np
-
 from mysklearn.myclassifiers import MyNaiveBayesClassifier
 
+# note: order is actual/received student value, expected/solution
 def test_naive_bayes_classifier_fit():
-    '''
-        Purpose: test for the naive bayes classification model training function.
-    '''
-    # case 1: use the 8-instance training set example (from class), asserting against our desk check of the priors and conditional probabilities.
-    header1 = ["att1", "att2"]
-    X_train1 = [
-            [1, 5],
-            [2, 6],
-            [1, 5],
-            [1, 5],
-            [1, 6],
-            [2, 6],
-            [1, 5],
-            [1, 6]
-        ]
-    y_train1 = ["yes", "yes", "no", "no", "yes", "no", "yes", "yes"] # parallel to X_train
+    myNaive = MyNaiveBayesClassifier() # reused for all examples
 
-    # train the model.
-    clf1 = MyNaiveBayesClassifier()
-    clf1.fit(X_train1, y_train1)
-
-    # check class priors. 
-    assert np.isclose(clf1.priors["yes"], 5/8)
-    assert np.isclose(clf1.priors["no"], 3/8)
-
-    # check conditional probabilities.
-    assert np.isclose(clf1.conditionals["yes"][0][1], 4/5)
-    assert np.isclose(clf1.conditionals["yes"][0][2], 1/5)
-
-    assert np.isclose(clf1.conditionals["yes"][1][5], 2/5)
-    assert np.isclose(clf1.conditionals["yes"][1][6], 3/5)
-
-    assert np.isclose(clf1.conditionals["no"][0][1], 2/3)
-    assert np.isclose(clf1.conditionals["no"][0][2], 1/3)
-
-    assert np.isclose(clf1.conditionals["no"][1][5], 2/3)
-    assert np.isclose(clf1.conditionals["no"][1][6], 1/3)
-
-
-    # case 2: use the 15 instance training set example (from LA7), asserting against your desk check of the priors and conditional probabilities.
-    header2 = ["standing", "job_status", "credit_rating", "buys_iphone"]
-    X_train2 = [
-            [1, 3, "fair"],
-            [1, 3, "excellent"], 
-            [2, 3, "fair"],
-            [2, 2, "fair"],
-            [2, 1, "fair"],
-            [2, 1, "excellent"],
-            [2, 1, "excellent"],
-            [1, 2, "fair"],
-            [1, 1, "fair"],
-            [2, 2, "fair"],
-            [1, 2, "excellent"],
-            [2, 2, "excellent"],
-            [2, 3, "fair"],
-            [2, 2, "excellent"],
-            [2, 3, "fair"]
-        ]
-    y_train2 = ["no", "no", "yes", "yes", "yes", "no", "yes", "no", "yes", "yes", "yes", "yes", "yes", "no", "yes"]
-    
-    clf2 = MyNaiveBayesClassifier()
-    clf2.fit(X_train2, y_train2)
-
-    # check class priors. 
-    assert np.isclose(clf2.priors["yes"], 10/15)
-    assert np.isclose(clf2.priors["no"], 5/15)
-
-    # check conditional probabilities.
-    assert np.isclose(clf2.conditionals["yes"][0][1], 2/10)
-    assert np.isclose(clf2.conditionals["yes"][0][2], 8/10)
-    assert np.isclose(clf2.conditionals["yes"][1][1], 3/10)
-    assert np.isclose(clf2.conditionals["yes"][1][2], 4/10)
-    assert np.isclose(clf2.conditionals["yes"][1][3], 3/10)
-    assert np.isclose(clf2.conditionals["yes"][2]["fair"], 7/10)
-    assert np.isclose(clf2.conditionals["yes"][2]["excellent"], 3/10)
-
-    assert np.isclose(clf2.conditionals["no"][0][1], 3/5)
-    assert np.isclose(clf2.conditionals["no"][0][2], 2/5)
-    assert np.isclose(clf2.conditionals["no"][1][1], 1/5)
-    assert np.isclose(clf2.conditionals["no"][1][2], 2/5)
-    assert np.isclose(clf2.conditionals["no"][1][3], 2/5)
-    assert np.isclose(clf2.conditionals["no"][2]["fair"], 2/5)
-    assert np.isclose(clf2.conditionals["no"][2]["excellent"], 3/5)
-
-    # case 3: Use Bramer 3.2 Figure 3.1 train dataset example, asserting against the priors and conditional probabilities in Figure 3.2.
-    header3 = ["day", "season", "wind", "rain"]
-    X_train3 = [
-        ["weekday", "spring", "none", "none"],
-        ["weekday", "winter", "none", "slight"],
-        ["weekday", "winter", "none", "slight"],
-        ["weekday", "winter", "high", "heavy"],
-        ["saturday", "summer", "normal", "none"],
-        ["weekday", "autumn", "normal", "none"],
-        ["holiday", "summer", "high", "slight"],
-        ["sunday", "summer", "normal", "none"],
-        ["weekday", "winter", "high", "heavy"],
-        ["weekday", "spring", "none", "none"],
-        ["saturday", "spring", "high", "heavy"],
-        ["weekday", "summer", "high", "slight"],
-        ["saturday", "winter", "normal", "none"],
-        ["weekday", "summer", "high", "none"],
-        ["weekday", "winter", "normal", "heavy"],
-        ["saturday", "autumn", "high", "slight"],
-        ["weekday", "autumn", "none", "heavy"],
-        ["holiday", "spring", "normal", "slight"],
-        ["weekday", "spring", "normal", "none"],
-        ["weekday", "spring", "normal", "slight"],
+    # in-class Naive Bayes example (lab task #1)
+    header_inclass_example = ["att1", "att2"]
+    X_train_inclass_example = [
+        [1, 5], # yes
+        [2, 6], # yes
+        [1, 5], # no
+        [1, 5], # no
+        [1, 6], # yes
+        [2, 6], # no
+        [1, 5], # yes
+        [1, 6] # yes
     ]
-    y_train3 = ["on time", "on time", "on time", "late", "on time", "very late", "on time", "on time", "very late", "on time", "cancelled", "on time", "late", "on time", "very late", "on time", "on time", "on time", "on time", "on time"]
+    y_train_inclass_example = ["yes", "yes", "no", "no", "yes", "no", "yes", "yes"]
+
+    myNaive.fit(X_train_inclass_example, y_train_inclass_example)
+
+    assert myNaive.priors == {'yes': 5/8, 'no': 3/8} # 5 "yes"'s and 3 "no"'s out of 8 rows
     
-    clf3 = MyNaiveBayesClassifier()
-    clf3.fit(X_train3, y_train3)
+    expected_conditionals = {'yes': [{1: 4/5, 2: 1/5}, {5: 2/5, 6: 3/5}], 'no': [{1: 2/3, 2: 1/3}, {5: 2/3, 6: 1/3}]}
+    for key in myNaive.conditionals: # for 'yes': [{1: 4/5, 2: 1/5}, {5: 2/5, 6: 3/5}]
+        for index, column in enumerate(myNaive.conditionals[key]): # for 0, {1: 4/5, 2: 1/5}
+            for pred_key, value in column.items(): # for 1, 4/5
+                assert value ==  expected_conditionals[key][index][pred_key] # 4/5
 
-    # check class priors. 
-    assert np.isclose(clf3.priors["on time"], 0.70)
-    assert np.isclose(clf3.priors["very late"], 0.15)
-    assert np.isclose(clf3.priors["late"], 0.10)
-    assert np.isclose(clf3.priors["cancelled"], 0.05)
+    # LA7 (fake) iPhone purchases dataset
+    header_iphone = ["standing", "job_status", "credit_rating"]
+    X_train_iphone = [
+        [1, 3, "fair"],
+        [1, 3, "excellent"],
+        [2, 3, "fair"],
+        [2, 2, "fair"],
+        [2, 1, "fair"],
+        [2, 1, "excellent"],
+        [2, 1, "excellent"],
+        [1, 2, "fair"],
+        [1, 1, "fair"],
+        [2, 2, "fair"],
+        [1, 2, "excellent"],
+        [2, 2, "excellent"],
+        [2, 3, "fair"],
+        [2, 2, "excellent"],
+        [2, 3, "fair"]
+    ]
+    y_train_iphone = ["no", "no", "yes", "yes", "yes", "no", "yes", "no", "yes", "yes", "yes", "yes", "yes", "no", "yes"]
+    myNaive.fit(X_train_iphone, y_train_iphone)
 
-    # check conditional probabilities.
-    assert np.isclose(clf3.conditionals["on time"][0]["weekday"], 0.64, atol=1e-2)
-    assert np.isclose(clf3.conditionals["on time"][1]["winter"], 0.14, atol=1e-2)
-    assert np.isclose(clf3.conditionals["on time"][2]["high"], 0.29, atol=1e-2)
-    assert np.isclose(clf3.conditionals["on time"][3]["heavy"], 0.07, atol=1e-2)
+    expected_priors = {'no': 5/15, 'yes': 10/15}
 
-    assert np.isclose(clf3.conditionals["very late"][0]["weekday"], 1, atol=1e-2)
-    assert np.isclose(clf3.conditionals["very late"][1]["winter"], 0.67, atol=1e-2)
-    assert np.isclose(clf3.conditionals["very late"][2]["high"], 0.33, atol=1e-2)
-    assert np.isclose(clf3.conditionals["very late"][3]["heavy"], 0.67, atol=1e-2)
+    for key in myNaive.priors:
+        assert myNaive.priors[key] == expected_priors[key]
 
-    assert np.isclose(clf3.conditionals["late"][0]["weekday"], 0.5, atol=1e-2)
-    assert np.isclose(clf3.conditionals["late"][1]["winter"], 1, atol=1e-2)
-    assert np.isclose(clf3.conditionals["late"][2]["high"], 0.5, atol=1e-2)
-    assert np.isclose(clf3.conditionals["late"][3]["heavy"], 0.5, atol=1e-2)
+    expected_conditionals = {'yes': [{1: 2/10, 2: 8/10}, {1: 3/10, 2: 4/10, 3: 3/10}, {'fair': 7/10, 'excellent': 3/10}], 
+                             'no': [{1: 3/5, 2: 2/5}, {1: 1/5, 2: 2/5, 3: 2/5}, {'fair': 2/5, 'excellent': 3/5}]}
+    
+    for key in myNaive.conditionals:
+        for index, column in enumerate(myNaive.conditionals[key]):
+            for pred_key, value in column.items():
+                assert value ==  expected_conditionals[key][index][pred_key]
 
-    # assert np.isclose(clf3.conditionals["cancelled"][0]["weekday"], 0)
-    # assert np.isclose(clf3.conditionals["cancelled"][1]["winter"], 0)
-    assert np.isclose(clf3.conditionals["cancelled"][2]["high"], 1, atol=1e-2)
-    assert np.isclose(clf3.conditionals["cancelled"][3]["heavy"], 1, atol=1e-2)
+    # Bramer 3.2 train dataset
+    header_train = ["day", "season", "wind", "rain"]
+    X_train_train = [
+        ["weekday", "spring", "none", "none"], # on time
+        ["weekday", "winter", "none", "slight"], # on time
+        ["weekday", "winter", "none", "slight"], # on time
+        ["weekday", "winter", "high", "heavy"], # late
+        ["saturday", "summer", "normal", "none"], # on time
+        ["weekday", "autumn", "normal", "none"], # very late
+        ["holiday", "summer", "high", "slight"], # on time
+        ["sunday", "summer", "normal", "none"], # on time
+        ["weekday", "winter", "high", "heavy"], # very late
+        ["weekday", "summer", "none", "slight"], # on time
+        ["saturday", "spring", "high", "heavy"], # cancelled
+        ["weekday", "summer", "high", "slight"], # on time
+        ["saturday", "winter", "normal", "none"], # late
+        ["weekday", "summer", "high", "none"], # on time
+        ["weekday", "winter", "normal", "heavy"], # very late
+        ["saturday", "autumn", "high", "slight"], # on time
+        ["weekday", "autumn", "none", "heavy"], # on time
+        ["holiday", "spring", "normal", "slight"], # on time
+        ["weekday", "spring", "normal", "none"], # on time
+        ["weekday", "spring", "normal", "slight"] # on time
+    ]
+    y_train_train = ["on time", "on time", "on time", "late", "on time", "very late", "on time",
+                    "on time", "very late", "on time", "cancelled", "on time", "late", "on time",
+                    "very late", "on time", "on time", "on time", "on time", "on time"]
+    
+    myNaive.fit(X_train_train, y_train_train)
 
+    expected_priors = {'on time': 14/20, 'late': 2/20, 'very late': 3/20, 'cancelled': 1/20}
+    for key in myNaive.priors:
+        assert myNaive.priors[key] == expected_priors[key]
 
+    expected_conditionals = {'on time': [{'weekday': 9/14, 'saturday': 2/14, 'holiday': 2/14, 'sunday': 1/14},
+                                       {'spring': 4/14, 'winter': 2/14, 'autumn': 2/14, 'summer': 6/14}, 
+                                       {'none': 5/14, 'high': 4/14, 'normal': 5/14},
+                                       {'none': 5/14, 'slight': 8/14, 'heavy': 1/14}],
+                            'late': [{'weekday': 1/2, 'saturday': 1/2, 'holiday': 0/2, 'sunday': 0/2},
+                                       {'spring': 0/2, 'winter': 2/2, 'autumn': 0/2, 'summer': 0/2}, 
+                                       {'none': 0/2, 'high': 1/2, 'normal': 1/2},
+                                       {'none': 1/2, 'slight': 0/2, 'heavy': 1/2}],
+                            'very late': [{'weekday': 3/3, 'saturday': 0/3, 'holiday': 0/3, 'sunday': 0/3},
+                                       {'spring': 0/3, 'winter': 2/3, 'autumn': 1/3, 'summer': 0/3}, 
+                                       {'none': 0/3, 'high': 1/3, 'normal': 2/3},
+                                       {'none': 1/3, 'slight': 0/3, 'heavy': 2/3}],
+                            'cancelled': [{'weekday': 0/1, 'saturday': 1/1, 'holiday': 0/1, 'sunday': 0/1},
+                                       {'spring': 1/1, 'winter': 0/1, 'autumn': 0/1, 'summer': 0/1}, 
+                                       {'none': 0/1, 'high': 1/1, 'normal': 0/1},
+                                       {'none': 0/1, 'slight': 0/1, 'heavy': 1/1}]}
 
+    for key in myNaive.conditionals:
+        for index, column in enumerate(myNaive.conditionals[key]):
+            for pred_key, value in column.items():
+                assert value ==  expected_conditionals[key][index][pred_key]
+    
+    
 def test_naive_bayes_classifier_predict():
-    # case 1: use the 8-instance training set example (from class), asserting against our desk check of the priors and conditional probabilities.
-    header1 = ["att1", "att2"]
-    X_train1 = [
-            [1, 5],
-            [2, 6],
-            [1, 5],
-            [1, 5],
-            [1, 6],
-            [2, 6],
-            [1, 5],
-            [1, 6]
-        ]
-    y_train1 = ["yes", "yes", "no", "no", "yes", "no", "yes", "yes"] # parallel to X_train
-    X_test1 = [1, 5]
-
-    # get predicted class label for our unseen instance using our naive bayes classifier.
-    clf1 = MyNaiveBayesClassifier()
-    clf1.fit(X_train1, y_train1)
-    y_pred1 = clf1.predict(X_test1)
-
-    # get true class label for our unseen instance using desk calculations.
-    p_yes1 = 5/8
-    p_1_given_yes = 4/5
-    p_5_given_yes = 2/5
-    p_yes_given_Xtest1 = p_yes1 * p_1_given_yes * p_5_given_yes
-    
-    p_no1 = 3/8
-    p_1_given_no = 2/3
-    p_5_given_no = 2/3
-    p_no_given_Xtest1 = p_no1 * p_1_given_no * p_5_given_no
-
-    if p_yes_given_Xtest1 > p_no_given_Xtest1:
-        expected_class1 = "yes"
-    else: # note: if the probabilite are the same, I just choose the label.
-        expected_class1 = "no"
-    
-    assert expected_class1 == y_pred1
-
-
-    # case 2: use the 15 instance training set example (from LA7), asserting against your desk check of the priors and conditional probabilities.
-    header2 = ["standing", "job_status", "credit_rating", "buys_iphone"]
-    X_train2 = [
-            [1, 3, "fair"],
-            [1, 3, "excellent"], 
-            [2, 3, "fair"],
-            [2, 2, "fair"],
-            [2, 1, "fair"],
-            [2, 1, "excellent"],
-            [2, 1, "excellent"],
-            [1, 2, "fair"],
-            [1, 1, "fair"],
-            [2, 2, "fair"],
-            [1, 2, "excellent"],
-            [2, 2, "excellent"],
-            [2, 3, "fair"],
-            [2, 2, "excellent"],
-            [2, 3, "fair"]
-        ]
-    y_train2 = ["no", "no", "yes", "yes", "yes", "no", "yes", "no", "yes", "yes", "yes", "yes", "yes", "no", "yes"]
-    X_test2 = [
-        [2, 2, "fair"], 
-        [1, 1, "excellent"]
-    ] 
-
-    # get predicted class label for our unseen instances using our naive bayes classifier.
-    clf2 = MyNaiveBayesClassifier()
-    clf2.fit(X_train2, y_train2)
-
-    y_pred2 = clf2.predict(X_test2)
-
-    # get true class label for our unseen instances using (previously calculated) desk calculations.
-    expected_label_Xtest2_1 = "yes" # from LA7
-    expected_label_Xtest2_2 = "no" # from LA7
-
-    assert y_pred2[0] == expected_label_Xtest2_1
-    assert y_pred2[1] == expected_label_Xtest2_2
-
-    
-
-    # case 3: Use Bramer 3.2 Figure 3.1 train dataset example, asserting against the priors and conditional probabilities in Figure 3.2.
-    header3 = ["day", "season", "wind", "rain"]
-    X_train3 = [
-        ["weekday", "spring", "none", "none"],
-        ["weekday", "winter", "none", "slight"],
-        ["weekday", "winter", "none", "slight"],
-        ["weekday", "winter", "high", "heavy"],
-        ["saturday", "summer", "normal", "none"],
-        ["weekday", "autumn", "normal", "none"],
-        ["holiday", "summer", "high", "slight"],
-        ["sunday", "summer", "normal", "none"],
-        ["weekday", "winter", "high", "heavy"],
-        ["weekday", "spring", "none", "none"],
-        ["saturday", "spring", "high", "heavy"],
-        ["weekday", "summer", "high", "slight"],
-        ["saturday", "winter", "normal", "none"],
-        ["weekday", "summer", "high", "none"],
-        ["weekday", "winter", "normal", "heavy"],
-        ["saturday", "autumn", "high", "slight"],
-        ["weekday", "autumn", "none", "heavy"],
-        ["holiday", "spring", "normal", "slight"],
-        ["weekday", "spring", "normal", "none"],
-        ["weekday", "spring", "normal", "slight"],
+    # in-class Naive Bayes example (lab task #1)
+    header_inclass_example = ["att1", "att2"]
+    X_train_inclass_example = [
+        [1, 5], # yes
+        [2, 6], # yes
+        [1, 5], # no
+        [1, 5], # no
+        [1, 6], # yes
+        [2, 6], # no
+        [1, 5], # yes
+        [1, 6] # yes
     ]
-    y_train3 = ["on time", "on time", "on time", "late", "on time", "very late", "on time", "on time", "very late", "on time", "cancelled", "on time", "late", "on time", "very late", "on time", "on time", "on time", "on time", "on time"]
-    X_test3 = [
-        ["weekday", "winter", "high", "heavy"],
-        ["weekday", "summer", "high", "heavy"],
-        ["sunday", "summer", "normal", "slight"]
+    y_train_inclass_example = ["yes", "yes", "no", "no", "yes", "no", "yes", "yes"]
+
+    myNaive = MyNaiveBayesClassifier()
+    myNaive.fit(X_train_inclass_example, y_train_inclass_example)
+    X_test = [[1, 5]]
+
+    # yes: P(yes) * P(1 | yes) * P(5 | yes) ==> (5/8)(4/5)(2/5) = 0.2
+    # no: P(no) * (1 | no) * P(5 | no) ==> (3/8)(2/3)(2/3) = 0.17
+    # since yes > no --> class = yes
+    assert myNaive.predict(X_test) == ["yes"] 
+
+    header_iphone = ["standing", "job_status", "credit_rating"]
+    X_train_iphone = [
+        [1, 3, "fair"],
+        [1, 3, "excellent"],
+        [2, 3, "fair"],
+        [2, 2, "fair"],
+        [2, 1, "fair"],
+        [2, 1, "excellent"],
+        [2, 1, "excellent"],
+        [1, 2, "fair"],
+        [1, 1, "fair"],
+        [2, 2, "fair"],
+        [1, 2, "excellent"],
+        [2, 2, "excellent"],
+        [2, 3, "fair"],
+        [2, 2, "excellent"],
+        [2, 3, "fair"]
     ]
+    y_train_iphone = ["no", "no", "yes", "yes", "yes", "no", "yes", "no", "yes", "yes", "yes", "yes", "yes", "no", "yes"]
+    myNaive.fit(X_train_iphone, y_train_iphone)
+    
+    X_test = [[2, 2, "fair"], [1, 1, "excellent"]]
+    
+    # For [2, 2, "fair"]:
+    #       yes: (10/15)(8/10)(4/10)(7/10) = 0.149 <--
+    #       no: (5/15)(2/5)(2/5)(2/5) = 0.021
+    # For [1, 1, "excellent"]:
+    #       yes: (10/15)(2/10)(3/10)(3/10) = 0.012 
+    #       no: (5/15)(3/5)(1/5)(3/5) = 0.024 <--
+    assert myNaive.predict(X_test) == ["yes", "no"]
 
-    # get predicted class label for our unseen instances using our naive bayes classifier.
-    clf3 = MyNaiveBayesClassifier()
-    clf3.fit(X_train3, y_train3)
-    y_pred3 = clf3.predict(X_test3)
-
-    # get true class label for our unseen instances using (previously calculated) desk calculations.
-    expected_label_Xtest3_1 = "very late"
-    expected_label_Xtest3_2 = "on time"
-    expected_label_Xtest3_3 = "on time"
-
-    assert expected_label_Xtest3_1 == y_pred3[0]
-    assert expected_label_Xtest3_2 == y_pred3[1]
-    assert expected_label_Xtest3_3 == y_pred3[2]
+    header_train = ["day", "season", "wind", "rain"]
+    X_train_train = [
+        ["weekday", "spring", "none", "none"], # on time
+        ["weekday", "winter", "none", "slight"], # on time
+        ["weekday", "winter", "none", "slight"], # on time
+        ["weekday", "winter", "high", "heavy"], # late
+        ["saturday", "summer", "normal", "none"], # on time
+        ["weekday", "autumn", "normal", "none"], # very late
+        ["holiday", "summer", "high", "slight"], # on time
+        ["sunday", "summer", "normal", "none"], # on time
+        ["weekday", "winter", "high", "heavy"], # very late
+        ["weekday", "summer", "none", "slight"], # on time
+        ["saturday", "spring", "high", "heavy"], # cancelled
+        ["weekday", "summer", "high", "slight"], # on time
+        ["saturday", "winter", "normal", "none"], # late
+        ["weekday", "summer", "high", "none"], # on time
+        ["weekday", "winter", "normal", "heavy"], # very late
+        ["saturday", "autumn", "high", "slight"], # on time
+        ["weekday", "autumn", "none", "heavy"], # on time
+        ["holiday", "spring", "normal", "slight"], # on time
+        ["weekday", "spring", "normal", "none"], # on time
+        ["weekday", "spring", "normal", "slight"] # on time
+    ]
+    y_train_train = ["on time", "on time", "on time", "late", "on time", "very late", "on time",
+                    "on time", "very late", "on time", "cancelled", "on time", "late", "on time",
+                    "very late", "on time", "on time", "on time", "on time", "on time"]
+    
+    myNaive.fit(X_train_train, y_train_train)
+    X_test = [["weekday", "winter", "high", "heavy"], 
+              ["weekday", "summer", "high", "heavy"],
+              ["sunday", "summer", "normal", "slight"]]
+    assert myNaive.predict(X_test) == ["very late", "on time", "on time"]
