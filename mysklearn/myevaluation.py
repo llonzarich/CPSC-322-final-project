@@ -505,187 +505,187 @@ def multiclass_f1_score(y_true, y_pred, labels=None):
 
 
 
-# def binary_precision_score(y_true, y_pred, labels=None, pos_label=None):
-#     """
-#         Purpose: compute the precision (for binary classification). The precision is the ratio tp / (tp + fp) where tp is the number of true positives and fp the number of false positives.
-#                  The precision is intuitively the ability of the classifier not to label as positive a sample that is negative. The best value is 1 and the worst value is 0.
+def binary_precision_score(y_true, y_pred, labels=None, pos_label=None):
+    """
+        Purpose: compute the precision (for binary classification). The precision is the ratio tp / (tp + fp) where tp is the number of true positives and fp the number of false positives.
+                 The precision is intuitively the ability of the classifier not to label as positive a sample that is negative. The best value is 1 and the worst value is 0.
 
-#     Args:
-#         y_true(list of obj): The ground_truth target y values
-#             The shape of y is n_samples
-#         y_pred(list of obj): The predicted target y values (parallel to y_true)
-#             The shape of y is n_samples
-#         labels(list of obj): The list of possible class labels. If None, defaults to
-#             the unique values in y_true
-#         pos_label(obj): The class label to report as the "positive" class. If None, defaults
-#             to the first label in labels
+    Args:
+        y_true(list of obj): The ground_truth target y values
+            The shape of y is n_samples
+        y_pred(list of obj): The predicted target y values (parallel to y_true)
+            The shape of y is n_samples
+        labels(list of obj): The list of possible class labels. If None, defaults to
+            the unique values in y_true
+        pos_label(obj): The class label to report as the "positive" class. If None, defaults
+            to the first label in labels
 
-#     Returns:
-#         precision(float): Precision of the positive class
+    Returns:
+        precision(float): Precision of the positive class
 
-#     Notes:
-#         Loosely based on sklearn's precision_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html
-#     """
+    Notes:
+        Loosely based on sklearn's precision_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html
+    """
 
-#     if labels is None:
-#         labels = []
-#         unique_keys = myutils.get_frequency(y_true)
-#         for key in unique_keys:
-#             # since get_frequency returns the frequency of each unique value
-#             # appending the key only puts in the unique values of y
-#             labels.append(key) 
+    if labels is None:
+        labels = []
+        unique_keys = myutils.get_frequency(y_true)
+        for key in unique_keys:
+            # since get_frequency returns the frequency of each unique value
+            # appending the key only puts in the unique values of y
+            labels.append(key) 
     
-#     if pos_label is None:
-#         pos_label = labels[0] # sets positive value to be the first label
+    if pos_label is None:
+        pos_label = labels[0] # sets positive value to be the first label
 
-#     tp = 0
-#     for loc in range(len(y_true)):
-#         if (y_true[loc] == y_pred[loc]) and (y_true[loc] == pos_label): 
-#             # captures matching true and pred, AND labels that are only the positive label
-#             tp += 1
+    tp = 0
+    for loc in range(len(y_true)):
+        if (y_true[loc] == y_pred[loc]) and (y_true[loc] == pos_label): 
+            # captures matching true and pred, AND labels that are only the positive label
+            tp += 1
 
-#     tp_fp = tp
-#     for loc in range(len(y_true)):
-#         if (y_true[loc] != pos_label) and (y_pred[loc] == pos_label): 
-#             # captures only the true values that are NOT the positive label AND the predictions that incorrectly predict posiitve label (aka false positive)
-#             tp_fp += 1 # only adds false positives since true positives is already calculated and added earlier 
+    tp_fp = tp
+    for loc in range(len(y_true)):
+        if (y_true[loc] != pos_label) and (y_pred[loc] == pos_label): 
+            # captures only the true values that are NOT the positive label AND the predictions that incorrectly predict posiitve label (aka false positive)
+            tp_fp += 1 # only adds false positives since true positives is already calculated and added earlier 
 
-#     if tp_fp == 0: # prevents division by zero
-#         return 0
-#     else:
-#         return tp/tp_fp
-    
-
-# def binary_recall_score(y_true, y_pred, labels=None, pos_label=None):
-#     """
-#         Purpose: Compute the recall (for binary classification). The recall is the ratio tp / (tp + fn) where tp is the number of true positives and fn the number of false negatives.
-#                  The recall is intuitively the ability of the classifier to find all the positive samples.
-#                  The best value is 1 and the worst value is 0.
-
-#     Args:
-#         y_true(list of obj): The ground_truth target y values
-#             The shape of y is n_samples
-#         y_pred(list of obj): The predicted target y values (parallel to y_true)
-#             The shape of y is n_samples
-#         labels(list of obj): The list of possible class labels. If None, defaults to
-#             the unique values in y_true
-#         pos_label(obj): The class label to report as the "positive" class. If None, defaults
-#             to the first label in labels
-
-#     Returns:
-#         recall(float): Recall of the positive class
-
-#     Notes:
-#         Loosely based on sklearn's recall_score():
-#             https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html
-#     """
-    
-#     if labels is None:
-#         labels = []
-#         unique_keys = myutils.get_frequency(y_true)
-#         for key in unique_keys:
-#             # since get_frequency returns the frequency of each unique value
-#             # appending the key only puts in the unique values of y
-#             labels.append(key)
-    
-#     if pos_label is None:
-#         pos_label = labels[0] # sets positive value to be the first label
-
-#     tp = 0
-#     for loc in range(len(y_true)):
-#         if (y_true[loc] == y_pred[loc]) and (y_true[loc] == pos_label): 
-#             # captures pred that correctly classified the TRUE label
-#             tp += 1
-
-#     tp_fn = tp
-#     for loc in range(len(y_true)):
-#         if (y_true[loc] == pos_label) and (y_pred[loc] != pos_label):
-#             # captures only the true values that are actually positive AND the pred that is incorrectly classified as negative (aka the false negatives)
-#             tp_fn += 1 # only adds false negatives since true positives is already calculated and added earlier
-
-#     if tp_fn == 0: # prevents division by zero
-#         return 0
-#     else:
-#         return tp/tp_fn
+    if tp_fp == 0: # prevents division by zero
+        return 0
+    else:
+        return tp/tp_fp
     
 
-# def binary_f1_score(y_true, y_pred, labels=None, pos_label=None):
-#     """
-#         Puprpose: Compute the F1 score (for binary classification), also known as balanced F-score or F-measure.
-#                   The F1 score can be interpreted as a harmonic mean of the precision and recall, where an F1 score reaches its best value at 1 and worst score at 0.
-#                   The relative contribution of precision and recall to the F1 score are equal.
-#                   The formula for the F1 score is: F1 = 2 * (precision * recall) / (precision + recall)
+def binary_recall_score(y_true, y_pred, labels=None, pos_label=None):
+    """
+        Purpose: Compute the recall (for binary classification). The recall is the ratio tp / (tp + fn) where tp is the number of true positives and fn the number of false negatives.
+                 The recall is intuitively the ability of the classifier to find all the positive samples.
+                 The best value is 1 and the worst value is 0.
 
-#         Args:
-#             y_true(list of obj): The ground_truth target y values
-#                 The shape of y is n_samples
-#             y_pred(list of obj): The predicted target y values (parallel to y_true)
-#                 The shape of y is n_samples
-#             labels(list of obj): The list of possible class labels. If None, defaults to
-#                 the unique values in y_true
-#             pos_label(obj): The class label to report as the "positive" class. If None, defaults
-#                 to the first label in labels
+    Args:
+        y_true(list of obj): The ground_truth target y values
+            The shape of y is n_samples
+        y_pred(list of obj): The predicted target y values (parallel to y_true)
+            The shape of y is n_samples
+        labels(list of obj): The list of possible class labels. If None, defaults to
+            the unique values in y_true
+        pos_label(obj): The class label to report as the "positive" class. If None, defaults
+            to the first label in labels
 
-#         Returns:
-#             f1(float): F1 score of the positive class
+    Returns:
+        recall(float): Recall of the positive class
 
-#         Notes:
-#             Loosely based on sklearn's f1_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html
-#     """
-#     if labels is None:
-#         labels = []
-#         unique_keys = myutils.get_frequency(y_true)
-#         for key in unique_keys:
-#             # since get_frequency returns the frequency of each unique value
-#             # appending the key only puts in the unique values of y
-#             labels.append(key)
+    Notes:
+        Loosely based on sklearn's recall_score():
+            https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html
+    """
     
-#     if pos_label is None:
-#         pos_label = labels[0] # sets positive value to be the first label
+    if labels is None:
+        labels = []
+        unique_keys = myutils.get_frequency(y_true)
+        for key in unique_keys:
+            # since get_frequency returns the frequency of each unique value
+            # appending the key only puts in the unique values of y
+            labels.append(key)
+    
+    if pos_label is None:
+        pos_label = labels[0] # sets positive value to be the first label
 
-#     # since F1 requries precision and recall, call the functions that calculate them to avoid redundant code
-#     precision = binary_precision_score(y_true, y_pred, labels, pos_label)
-#     recall = binary_recall_score(y_true, y_pred, labels, pos_label)
+    tp = 0
+    for loc in range(len(y_true)):
+        if (y_true[loc] == y_pred[loc]) and (y_true[loc] == pos_label): 
+            # captures pred that correctly classified the TRUE label
+            tp += 1
 
-#     if (precision + recall) == 0: # prevents division by zero
-#         return 0
-#     else:
-#         return (2 * (precision * recall / (precision + recall)))
+    tp_fn = tp
+    for loc in range(len(y_true)):
+        if (y_true[loc] == pos_label) and (y_pred[loc] != pos_label):
+            # captures only the true values that are actually positive AND the pred that is incorrectly classified as negative (aka the false negatives)
+            tp_fn += 1 # only adds false negatives since true positives is already calculated and added earlier
+
+    if tp_fn == 0: # prevents division by zero
+        return 0
+    else:
+        return tp/tp_fn
+    
+
+def binary_f1_score(y_true, y_pred, labels=None, pos_label=None):
+    """
+        Puprpose: Compute the F1 score (for binary classification), also known as balanced F-score or F-measure.
+                  The F1 score can be interpreted as a harmonic mean of the precision and recall, where an F1 score reaches its best value at 1 and worst score at 0.
+                  The relative contribution of precision and recall to the F1 score are equal.
+                  The formula for the F1 score is: F1 = 2 * (precision * recall) / (precision + recall)
+
+        Args:
+            y_true(list of obj): The ground_truth target y values
+                The shape of y is n_samples
+            y_pred(list of obj): The predicted target y values (parallel to y_true)
+                The shape of y is n_samples
+            labels(list of obj): The list of possible class labels. If None, defaults to
+                the unique values in y_true
+            pos_label(obj): The class label to report as the "positive" class. If None, defaults
+                to the first label in labels
+
+        Returns:
+            f1(float): F1 score of the positive class
+
+        Notes:
+            Loosely based on sklearn's f1_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html
+    """
+    if labels is None:
+        labels = []
+        unique_keys = myutils.get_frequency(y_true)
+        for key in unique_keys:
+            # since get_frequency returns the frequency of each unique value
+            # appending the key only puts in the unique values of y
+            labels.append(key)
+    
+    if pos_label is None:
+        pos_label = labels[0] # sets positive value to be the first label
+
+    # since F1 requries precision and recall, call the functions that calculate them to avoid redundant code
+    precision = binary_precision_score(y_true, y_pred, labels, pos_label)
+    recall = binary_recall_score(y_true, y_pred, labels, pos_label)
+
+    if (precision + recall) == 0: # prevents division by zero
+        return 0
+    else:
+        return (2 * (precision * recall / (precision + recall)))
 
 
-# def accuracy_score(y_true, y_pred, normalize=True):
-#     """
-#         Purpose: Compute the classification prediction accuracy score.
+def accuracy_score(y_true, y_pred, normalize=True):
+    """
+        Purpose: Compute the classification prediction accuracy score.
 
-#         Args:
-#             y_true (list of obj): - The ground_truth target y values
-#                                   - has shape: n_samples
-#             y_pred (list of obj): - The predicted target y values (corresponding to y_true)
-#                                  - has shape: n_samples
-#             normalize(bool): - If False, return the number of correctly classified samples.
-#                              - Otherwise, return the fraction of correctly classified samples.
+        Args:
+            y_true (list of obj): - The ground_truth target y values
+                                  - has shape: n_samples
+            y_pred (list of obj): - The predicted target y values (corresponding to y_true)
+                                 - has shape: n_samples
+            normalize(bool): - If False, return the number of correctly classified samples.
+                             - Otherwise, return the fraction of correctly classified samples.
 
-#         Returns:
-#             score (float): If normalize == True, return the fraction of correctly classified samples (float),
-#                         otherwise, return the number of correctly classified samples (int).
+        Returns:
+            score (float): If normalize == True, return the fraction of correctly classified samples (float),
+                        otherwise, return the number of correctly classified samples (int).
 
-#         Notes: - Loosely based on sklearn's accuracy_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
-#                - acc = (TP + TN) / (P + N) = (TP + TN) / (TP + FP + TN + FN)
-#     """
+        Notes: - Loosely based on sklearn's accuracy_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
+               - acc = (TP + TN) / (P + N) = (TP + TN) / (TP + FP + TN + FN)
+    """
 
-#     score = 0.0 # to store the number of correctly classified samples as a float.
-#     correct = 0 # to keep track of the total number of correctly predicted samples. This = (TP + TN)
+    score = 0.0 # to store the number of correctly classified samples as a float.
+    correct = 0 # to keep track of the total number of correctly predicted samples. This = (TP + TN)
 
-#     for idx in range(len(y_true)):
-#         if y_true[idx] == y_pred[idx]:
-#             correct += 1
+    for idx in range(len(y_true)):
+        if y_true[idx] == y_pred[idx]:
+            correct += 1
 
-#     if normalize is True:
-#         score = correct / len(y_true) # ensure score is the fraction / proportion of correctly classified samples (float).
-#     else:
-#         score = correct # ensure score is the number of correctly classified samples (int).
+    if normalize is True:
+        score = correct / len(y_true) # ensure score is the fraction / proportion of correctly classified samples (float).
+    else:
+        score = correct # ensure score is the number of correctly classified samples (int).
 
-#     return score
+    return score
 
 
 
