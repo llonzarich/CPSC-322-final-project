@@ -80,13 +80,11 @@ class MyDecisionTreeClassifier:
             # CASE 1: all class labels of the partition are the same
             # ==> make a leaf node
             if myutils.all_same_values(y_train):
-                # print("1")
                 return ["Leaf", y_train[0], len(y_train), prev_length]
             
             # CASE 2: there are no more attributes to split on, and still don't have the same class labels
             # ==> take the most frequent class label, and if there is a tie: take the class label that comes first alphabetically
             if len(current_att) == 0: # returns leaf of most frequent class label/first alphabetically
-                # print("2")
                 return ["Leaf", myutils.most_freq_class(y_train), len(y_train), prev_length]
 
             # for the random random forest classifier: selects F random attributes as partition candidate attributes 
@@ -98,8 +96,6 @@ class MyDecisionTreeClassifier:
                 temp_attr = current_att[:]
 
             # finds index of attribute with lowest entropy
-            # print("3")
-            # print(f"current_att: {current_att}")
             att_to_split_index = myutils.attribute_to_split(X_train, y_train, temp_attr) 
             
             tree = ["Attribute", "att" + str(att_to_split_index)]
@@ -261,15 +257,15 @@ class MyRandomForestClassifier:
         size_of_test = round(test_size * len(X))
 
         # temporary lists (before training/testing lists before it is shuffled)
+        X_test_temp = []
+        y_test_temp = []
+        X_train_temp = []
+        y_train_temp = []
+
         X_test = []
         y_test = []
         X_train = []
         y_train = []
-
-        self.X_test = []
-        self.y_test = []
-        self.X_train = []
-        self.y_train = []
 
         for key in y_freq: # this for-loop divides data into test and training sets
             ratio = round(y_freq[key]/len(X) * size_of_test) # finds the number of rows needed for each class label that would maintain the class-label
@@ -278,23 +274,27 @@ class MyRandomForestClassifier:
             for __ in range(ratio): # adds X and y rows to the testing set
                 rand_index = np.random.randint(0, len(divided_data[key]))
 
-                X_test.append(divided_data[key].pop(rand_index))
-                y_test.append(key)
+                X_test_temp.append(divided_data[key].pop(rand_index))
+                y_test_temp.append(key)
         
-        for __ in range(len(X_test)): # shuffles the testing set (or else the values will be grouped by class label)
-            rand_index = np.random.randint(0, len(X_test))
-            self.X_test.append(X_test.pop(rand_index))
-            self.y_test.append(y_test.pop(rand_index))
+        for __ in range(len(X_test_temp)): # shuffles the testing set (or else the values will be grouped by class label)
+            rand_index = np.random.randint(0, len(X_test_temp))
+            X_test.append(X_test_temp.pop(rand_index))
+            y_test.append(y_test_temp.pop(rand_index))
 
         for key in divided_data: # adds X and y rows to the training set
-            X_train.extend(divided_data[key]) # since the rows for the testing set were found by popping the earlier dictionary, the training set is 
+            X_train_temp.extend(divided_data[key]) # since the rows for the testing set were found by popping the earlier dictionary, the training set is 
                                               # just the remainder of what is left in the dictionary
-            for __ in range(y_freq[key]): y_train.append(key)
+            for __ in range(y_freq[key]): y_train_temp.append(key)
         
-        for __ in range(len(X_train)): # shuffles the training set (or else the values will be grouped by class label)
-            rand_index = np.random.randint(0, len(X_train))
-            self.X_train.append(X_train.pop(rand_index))
-            self.y_train.append(y_train.pop(rand_index))
+        for __ in range(len(X_train_temp)): # shuffles the training set (or else the values will be grouped by class label)
+            rand_index = np.random.randint(0, len(X_train_temp))
+            X_train.append(X_train_temp.pop(rand_index))
+            y_train.append(y_train_temp.pop(rand_index))
+        
+        
+
+        return X_train, X_test, y_train, y_test
         
 
     def fit(self, X_train, y_train, test_size = 0.33, random_state = None):
@@ -323,13 +323,13 @@ class MyRandomForestClassifier:
             self.M = self.N - 1
 
         # generate test sets (1/3 of dataset) and train sets (remaining 2/3 of dataset)
-        self.generate_test_set(X_train, y_train, test_size, random_state=random_state)
+        # self.generate_test_set(X_train, y_train, test_size, random_state=random_state)
 
         # generate, train, and evaluate trees for the forest (up to N trees)
         for __ in range(self.N):
 
             # generate random subsamples of data for training and evaluating the tree
-            X_train, X_test, y_train, y_test = myevaluation.bootstrap_sample(self.X_train, self.y_train, random_state=random_state)
+            X_train, X_test, y_train, y_test = myevaluation.bootstrap_sample(X_train, y_train, random_state=random_state)
 
             # create a new tree object for the forest
             tree = MyDecisionTreeClassifier(F = self.F)

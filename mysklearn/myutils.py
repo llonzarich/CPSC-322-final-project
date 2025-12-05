@@ -187,104 +187,178 @@ def my_discretizer(value):
 
 # ================== GENERAL SECTION ===========================
 
-def cross_val_predict(X, y, k, classifier_class, stratify=None):
-    '''
-        Purpose: - compute the k-fold cross-validaton for k = 10 and evaluate model performance for each split.
-                 - aka, partition the data into 10 equal folds, and use 1 to be the test set for each iteration (NO repeated test sets).
+# def cross_val_predict(X, y, k, classifier_class, stratify=None):
+#     '''
+#         Purpose: - compute the k-fold cross-validaton for k = 10 and evaluate model performance for each split.
+#                  - aka, partition the data into 10 equal folds, and use 1 to be the test set for each iteration (NO repeated test sets).
 
-        Arguments: 
-            X (list of lists of obj's): - the list of samples
-                                        - has shape: (n_samples, n_features)
-            y (list of obj): - The target y values (labels corresponding to X)
-                             - Default is None (in this case, the calling code only wants to sample X)
-            k (int): the number of folds. aka, the number of times we'll generate train and test splits.
-            classifier_class (class obj): - the classifier class we'll use to fit the model and predict.
+#         Arguments: 
+#             X (list of lists of obj's): - the list of samples
+#                                         - has shape: (n_samples, n_features)
+#             y (list of obj): - The target y values (labels corresponding to X)
+#                              - Default is None (in this case, the calling code only wants to sample X)
+#             k (int): the number of folds. aka, the number of times we'll generate train and test splits.
+#             classifier_class (class obj): - the classifier class we'll use to fit the model and predict.
 
-        Returns:
-            avg_acc (int): the avg accuracy of the fitted model over all k splits.
-            avg_err_rate (int): the avg error rate of the fitted model over all k splits. 
-            y_trues (list of strings): a list of all true mpg values in the dataset. 
-            y_preds (list of strings): a list of all predicted mpg values.  
-    '''
-    from mysklearn.myevaluation import kfold_split, stratified_kfold_split, accuracy_score, multiclass_precision_score, multiclass_recall_score, multiclass_f1_score
+#         Returns:
+#             avg_acc (int): the avg accuracy of the fitted model over all k splits.
+#             avg_err_rate (int): the avg error rate of the fitted model over all k splits. 
+#             y_trues (list of strings): a list of all true mpg values in the dataset. 
+#             y_preds (list of strings): a list of all predicted mpg values.  
+#     '''
+#     from mysklearn.myevaluation import kfold_split, stratified_kfold_split, accuracy_score, multiclass_precision_score, multiclass_recall_score, multiclass_f1_score
     
-    # get all unique class labels. 
-    labels = list(set(y)) 
+#     # get all unique class labels. 
+#     labels = list(set(y)) 
 
-    # initialize lists to store the acc, error rate, precision, recall, and f1-score of the model on each of the 10 splits of the data. 
-    accuracies = []
-    err_rates = []
-    precisions = []
-    recalls = []
-    f1s = []
+#     # initialize lists to store the acc, error rate, precision, recall, and f1-score of the model on each of the 10 splits of the data. 
+#     accuracies = []
+#     err_rates = []
+#     precisions = []
+#     recalls = []
+#     f1s = []
 
-    # initalize lists to store all the predicted class labels and all the true class labels (for the confusion matrix)
-    y_trues = []
-    y_preds = []
+#     # initalize lists to store all the predicted class labels and all the true class labels (for the confusion matrix)
+#     y_trues = []
+#     y_preds = []
 
-    # split the dataset into cross-validation folds. 
-    # note: kfold_split returns a list of tuples where each tuple has the train and test indicies for a given fold.
-    if stratify == False:
-        folds = kfold_split(X, n_splits=k, shuffle=True)
-    if stratify == True:
-        folds = stratified_kfold_split(X, y, n_splits=k, shuffle=True)
+#     # split the dataset into cross-validation folds. 
+#     # note: kfold_split returns a list of tuples where each tuple has the train and test indicies for a given fold.
+#     if stratify == False:
+#         folds = kfold_split(X, n_splits=k, shuffle=True)
+#     if stratify == True:
+#         folds = stratified_kfold_split(X, y, n_splits=k, shuffle=True)
 
-    # iterate over each train/test split so we can evaluate model performance on the different subsets of data.
-    for train_indices, test_indices in folds:
-        # convert X and y to numpy arrays ONLY for slicing
-        X_array = np.array(X, dtype=object)
-        y_array = np.array(y, dtype=object)
+#     # iterate over each train/test split so we can evaluate model performance on the different subsets of data.
+#     for train_indices, test_indices in folds:
+#         # convert X and y to numpy arrays ONLY for slicing
+#         X_array = np.array(X, dtype=object)
+#         y_array = np.array(y, dtype=object)
 
-        # create train and test sets for the current fold.
-        X_train, y_train = X_array[train_indices].tolist(), y_array[train_indices].tolist()
-        X_test, y_test = X_array[test_indices].tolist(), y_array[test_indices].tolist()
+#         # create train and test sets for the current fold.
+#         X_train, y_train = X_array[train_indices].tolist(), y_array[train_indices].tolist()
+#         X_test, y_test = X_array[test_indices].tolist(), y_array[test_indices].tolist()
 
-        # create a classifier object (because we want a fresh classifier for each new split of data).
-        classifier = classifier_class()
+#         # create a classifier object (because we want a fresh classifier for each new split of data).
+#         classifier = classifier_class()
 
-        # train the classifier on the training data (samples and corresponding labels). 
-        classifier.fit(X_train, y_train)
+#         # train the classifier on the training data (samples and corresponding labels). 
+#         classifier.fit(X_train, y_train)
 
-        # predict MPG for the test instances.
-        y_pred = classifier.predict(X_test)
+#         # predict MPG for the test instances.
+#         y_pred = classifier.predict(X_test)
 
-        pred_ratings = y_pred
-        actual_ratings = y_test
+#         pred_ratings = y_pred
+#         actual_ratings = y_test
 
-        # compute the accuracy and error rate of the model by comparing true and predicted mpg.
-        acc = accuracy_score(actual_ratings, pred_ratings)
-        err = 1 - acc
-        precision = multiclass_precision_score(actual_ratings, pred_ratings, labels=labels)
-        recall = multiclass_recall_score(actual_ratings, pred_ratings, labels=labels)
-        f1 = multiclass_f1_score(actual_ratings, pred_ratings, labels=labels)
+#         # compute the accuracy and error rate of the model by comparing true and predicted mpg.
+#         acc = accuracy_score(actual_ratings, pred_ratings)
+#         err = 1 - acc
+#         precision = multiclass_precision_score(actual_ratings, pred_ratings, labels=labels)
+#         recall = multiclass_recall_score(actual_ratings, pred_ratings, labels=labels)
+#         f1 = multiclass_f1_score(actual_ratings, pred_ratings, labels=labels)
 
-        accuracies.append(acc)
-        err_rates.append(err)
-        precisions.append(precision)
-        recalls.append(recall)
-        f1s.append(f1)
+#         accuracies.append(acc)
+#         err_rates.append(err)
+#         precisions.append(precision)
+#         recalls.append(recall)
+#         f1s.append(f1)
 
-        y_trues.extend(actual_ratings)
-        y_preds.extend(pred_ratings)
+#         y_trues.extend(actual_ratings)
+#         y_preds.extend(pred_ratings)
 
-    # find the avg accuracy and avg error rate of the model across all 10 splits of data.  
-    avg_acc = sum(accuracies) / k
-    avg_err_rate = sum(err_rates) / k
-    avg_precision = sum(precisions) / k
-    avg_recall = sum(recalls) / k
-    avg_f1 = sum(f1s) / k
+#     # find the avg accuracy and avg error rate of the model across all 10 splits of data.  
+#     avg_acc = sum(accuracies) / k
+#     avg_err_rate = sum(err_rates) / k
+#     avg_precision = sum(precisions) / k
+#     avg_recall = sum(recalls) / k
+#     avg_f1 = sum(f1s) / k
 
-    # convert y_trues and y_pred as strings
-    y_trues = [str(y) for y in y_trues]
-    y_preds = [str(y) for y in y_preds]
+#     # convert y_trues and y_pred as strings
+#     y_trues = [str(y) for y in y_trues]
+#     y_preds = [str(y) for y in y_preds]
 
-    return avg_acc, avg_err_rate, avg_precision, avg_recall, avg_f1, y_trues, y_preds
-
-
+#     return avg_acc, avg_err_rate, avg_precision, avg_recall, avg_f1, y_trues, y_preds
 
 
+def cross_val_predict(x_data, n_splits = 5, state = None, shuffle = False):
+    """ calls the kfold_split function with a certain number of splits
+    
+    Parameters:
+        x_data (list of list of obj): The list of samples
+            The shape of X is (n_samples, n_features)
+        n_splits (int): number of subsets the x_data is partitioned into
+        state (int): integer used for seeding a random number generator for reproducible results
+        shuffle (bool): whether or not to randomize the order of the instances before splitting
+
+    Returns:
+        List of 2 item tuples: list of folds where each fold is defined as a 2-item tuple
+            The first item in the tuple is the list of training set indices for the fold
+            The second item in the tuple is the list of testing set indices for the fold
+        
+    """
+
+    # since kfold_split is function that already iterates depending on the number of splits, no need to iterate in this function
+    return kfold_split(x_data, n_splits, state, shuffle) 
 
 
+def kfold_split(X, n_splits=5, random_state=None, shuffle=False):
+    """Split dataset into cross validation folds.
+
+    Args:
+        X(list of list of obj): The list of samples
+            The shape of X is (n_samples, n_features)
+        n_splits(int): Number of folds.
+        random_state(int): integer used for seeding a random number generator for reproducible results
+        shuffle(bool): whether or not to randomize the order of the instances before creating folds
+
+    Returns:
+        folds(list of 2-item tuples): The list of folds where each fold is defined as a 2-item tuple
+            The first item in the tuple is the list of training set indices for the fold
+            The second item in the tuple is the list of testing set indices for the fold
+
+    Notes:
+        The first n_samples % n_splits folds have size n_samples // n_splits + 1,
+            other folds have size n_samples // n_splits, where n_samples is the number of samples
+            (e.g. 11 samples and 4 splits, the sizes of the 4 folds are 3, 3, 3, 2 samples)
+        Loosely based on sklearn's KFold split():
+            https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html
+    """
+    np.random.seed(random_state)
+
+    # to divide up the folds, to see which indexes are used for training or testing
+    x_length = len(X)
+    x_unshuffled_indices = list(range(x_length))
+    
+    X_copy = X[:]
+    X_train = []
+    X_indices = []
+
+    for i in range(len(X_copy)): # saves each row into the training set
+        if shuffle: # if shuffle is True, a random row from the list of samples is saved repeatedly until there are no more rows left
+            rand_int = np.random.randint(0, len(X_copy))
+            X_train.append(X_copy.pop(rand_int)) # need to pop so the same row isn't randomly chosen twice (why a copy of X was created)
+            X_indices.append(x_unshuffled_indices.pop(rand_int))
+        else:
+            X_train.append(X_copy[i])
+            X_indices.append(x_unshuffled_indices[i])
+
+    # divides the indexes into folds, in case the folds do not partition dataset evenly
+    # ensures the last few folds have a lower number of indices, if dataset not divided evenly
+    fold_sizes = [x_length // n_splits + (1 if i < x_length % n_splits else 0)
+                  for i in range(n_splits)]
+
+    # saves indexes for the folds, divided into tuples depending on training and testing
+    folds = []
+    curr = 0
+    for size in fold_sizes:
+        start, stop = curr, curr + size # saves the start and stop indices for the X_indices for testing
+        test_index = X_indices[start:stop]
+        train_index = X_indices[0:start] + X_indices[stop:] # saves the data before and after the testing data, used as training data
+        folds.append((train_index, test_index))
+        curr = stop # moves up the dataset, so only the start and stop indicies for testing data is looked at
+
+    return folds
 
 
 
