@@ -172,6 +172,36 @@ def stratified_kfold_split(X, y, n_splits=5, random_state=None, shuffle=False):
 
     return folds
 
+
+def confusion_matrix(y_true, y_pred, labels):
+    """
+        Purpose: Compute confusion matrix to evaluate the accuracy of a classification.
+
+    Args:
+        y_true(list of obj): The ground_truth target y values
+            The shape of y is n_samples
+        y_pred(list of obj): The predicted target y values (parallel to y_true)
+            The shape of y is n_samples
+        labels(list of str): The list of all possible target y labels used to index the matrix
+
+    Returns:
+        matrix(list of list of int): Confusion matrix whose i-th row and j-th column entry
+            indicates the number of samples with true label being i-th class
+            and predicted label being j-th class
+
+    Notes:
+        Loosely based on sklearn's confusion_matrix(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
+    """
+    
+    # creates a blank matrix so it can be added to later, instead of having to create/append when adding to matrix
+    matrix = [[0 for _ in range(len(labels))] for _ in range(len(labels))]
+    
+    for loc in range(len(y_true)):
+        matrix[labels.index(y_true[loc])][labels.index(y_pred[loc])] += 1 # adds to the specific column's (predicted class) specific row (actual class)
+
+    return matrix
+
+
 def accuracy_score(y_true, y_pred, normalize=True):
     """
         Purpose: Compute the classification prediction accuracy score.
