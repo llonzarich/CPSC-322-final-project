@@ -130,6 +130,25 @@ def partition_data(X_data, y_data, att_to_split):
     return subset
 
 
+def get_col(X_data, col_num):
+    """returns a column of a dataset
+    
+    Parameters:
+        X_data (a list of a list of objects): the list of training samples
+        col_num (integer): the column index of the column being returned
+
+    Returns:
+        return_col (list of objects): all values in a specific column
+        
+    """
+    
+    return_col = []
+    for row in X_data:
+        return_col.append(row[col_num])
+    
+    return return_col
+
+
 def most_freq_class(y_data):
     """returns most frequent class label
     
