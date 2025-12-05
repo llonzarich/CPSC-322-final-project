@@ -489,22 +489,6 @@ def multiclass_f1_score(y_true, y_pred, labels=None):
     return f1
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def binary_precision_score(y_true, y_pred, labels=None, pos_label=None):
     """
         Purpose: compute the precision (for binary classification). The precision is the ratio tp / (tp + fp) where tp is the number of true positives and fp the number of false positives.
@@ -747,3 +731,32 @@ def bootstrap_sample(X, y=None, n_samples=None, random_state=None):
 
 
     return X_sample, X_out_of_bag, y_sample, y_out_of_bag
+
+def rf_metrics(X_train, y_train, X_test, y_test, forest, k):
+    total_accuracy = 0
+    total_precision = 0
+    total_recall = 0
+    total_f1_score = 0
+    # for Naive Bayes matrice (needs to be a 1D list)
+    y_pred = []
+    y_actual = []
+
+    for index in range(len(X_train)):
+        forest.fit(X_train[index], y_train[index])
+
+        y_pred.extend(forest.predict(X_test[index]))
+        y_actual.extend(y_test[index])
+
+        # adds all performance matrice for each fold, so average can be calculated later
+        total_accuracy += accuracy_score(y_test[index], forest.predict(X_test[index]))
+        total_precision += multiclass_precision_score(y_test[index], forest.predict(X_test[index]))
+        total_recall += multiclass_recall_score(y_test[index], forest.predict(X_test[index]))
+        total_f1_score += multiclass_f1_score(y_test[index], forest.predict(X_test[index]))
+
+    accuracy = total_accuracy / k
+    error_rate = 1 - accuracy
+    precision = total_precision / k
+    recall = total_recall / k
+    f1_score = total_f1_score / k
+
+    return accuracy, error_rate, precision, recall, f1_score

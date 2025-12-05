@@ -259,6 +259,9 @@ class MyRandomForestClassifier:
         X_train_temp = []
         y_train_temp = []
 
+        self.X_train = []
+        self.y_train = []
+
         X_test = []
         y_test = []
 
@@ -292,7 +295,7 @@ class MyRandomForestClassifier:
         return self.X_train, X_test, self.y_train, y_test
         
 
-    def fit(self, X_train, y_train, test_size = 0.33, random_state = None):
+    def fit(self, X_train, y_train, random_state = None):
         '''
             Purpose: fits a random forest classifier to X_train and y_train using the TDIDT algorithm
 
@@ -335,12 +338,8 @@ class MyRandomForestClassifier:
             # train the tree on the training data (samples and corresp. labels)
             tree.fit(X_train, y_train)
 
-            print(X_test)
-
             # predict confidence rating for test instances
             y_pred = tree.predict(X_test)
-
-            print(y_pred)
 
 
             # compute the accuracy of the model compared to true and predicted class labels
