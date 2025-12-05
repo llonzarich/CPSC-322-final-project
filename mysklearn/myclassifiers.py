@@ -179,9 +179,6 @@ class MyDecisionTreeClassifier:
         return y_pred 
 
 
-
-
-
 class MyRandomForestClassifier:
     """
         Purpose: Represents a random forest classifier.
@@ -240,59 +237,78 @@ class MyRandomForestClassifier:
         if random_state is not None:
             np.random.seed(random_state)
 
-        y_freq = myutils.get_frequency(y) # gets the frequency of each unique class label
+        test_length = round(test_size * len(X))
 
-        divided_data = {}
+        divided_X = {}
+        divided_y = {}
 
-        for key in y_freq: # divides the data based on the class label (into a dictionary)
-            curr_class_X = []
-            for index, class_label in enumerate(y):
-                if class_label == key:
-                    curr_class_X.append(X[index])
-            divided_data[key] = curr_class_X
+        for xval, yval in zip(X, y):
+            if yval not in divided_X:
+                divided_X[yval] = []
+                divided_y[yval] = []
+            divided_X[yval].append(xval)
+            divided_y[yval].append(yval)
 
-        size_of_test = round(test_size * len(X))
+        class_counts = {}
+        for label in divided_X:
+            class_counts[label] = len(divided_y[label])
 
-        # temporary lists (before training/testing lists before it is shuffled)
-        X_test_temp = []
-        y_test_temp = []
-        X_train_temp = []
-        y_train_temp = []
+        proportion = {}
+        for label in divided_X:
+            proportion[label] = class_counts[label] * test_length / len(X)
 
-        self.X_train = []
-        self.y_train = []
+        rounded_cts = {}
+        for key, value in proportion.items():
+            rounded_cts[key] = int(round(value))
+
+
+        difference = test_length - sum(rounded_cts.values())
+        if difference != 0:
+            fraction = {}
+            for label in divided_X:
+                fraction[label] = proportion[label] - int(proportion[label])
+
+            sorted_labels = sorted(fraction, key = lambda k: fraction[k], reverse = True)
+            
+            for label in sorted_labels[:abs(difference)]:
+                rounded_cts[label] += np.sign(difference)
 
         X_test = []
         y_test = []
+        X_train = []
+        y_train = []
 
-        for key in y_freq: # this for-loop divides data into test and training sets
-            ratio = round(y_freq[key]/len(X) * size_of_test) # finds the number of rows needed for each class label that would maintain the class-label
-                                                             # distribution of the original dataset in the testing set
+        for label in divided_X:
 
-            for __ in range(ratio): # adds X and y rows to the testing set
-                rand_index = np.random.randint(0, len(divided_data[key]))
+            index = np.arange(class_counts[label])
+            np.random.shuffle(index)
 
-                X_test_temp.append(divided_data[key].pop(rand_index))
-                y_test_temp.append(key)
-        
-        for __ in range(len(X_test_temp)): # shuffles the testing set (or else the values will be grouped by class label)
-            rand_index = np.random.randint(0, len(X_test_temp))
-            X_test.append(X_test_temp.pop(rand_index))
-            y_test.append(y_test_temp.pop(rand_index))
+            test_k = rounded_cts[label]
 
-        for key in divided_data: # adds X and y rows to the training set
-            X_train_temp.extend(divided_data[key]) # since the rows for the testing set were found by popping the earlier dictionary, the training set is 
-                                              # just the remainder of what is left in the dictionary
-            for __ in range(y_freq[key]): y_train_temp.append(key)
-        
-        for __ in range(len(X_train_temp)): # shuffles the training set (or else the values will be grouped by class label)
-            rand_index = np.random.randint(0, len(X_train_temp))
-            self.X_train.append(X_train_temp.pop(rand_index))
-            self.y_train.append(y_train_temp.pop(rand_index))
-        
-        
+            # choose test indices
+            test_index = index[:test_k]
+            train_index = index[test_k:]
 
-        return self.X_train, X_test, self.y_train, y_test
+            for i in test_index:
+                X_test.append(divided_X[label][i])
+                y_test.append(label)
+
+            for i in train_index:
+                X_train.append(divided_X[label][i])
+                y_train.append(label)
+
+        def shuffle_parallel(X, y):
+            index = np.arange(len(X))
+            np.random.shuffle(index)
+            return [X[i] for i in index], [y[i] for i in index]
+
+        X_train, y_train = shuffle_parallel(X_train, y_train)
+        X_test, y_test = shuffle_parallel(X_test, y_test)
+
+        self.X_train = X_train
+        self.y_train = y_train
+
+        return X_train, X_test, y_train, y_test
         
 
     def fit(self, X_train, y_train, random_state = None):

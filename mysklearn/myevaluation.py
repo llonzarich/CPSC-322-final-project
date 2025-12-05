@@ -172,36 +172,6 @@ def stratified_kfold_split(X, y, n_splits=5, random_state=None, shuffle=False):
 
     return folds
 
-
-def confusion_matrix(y_true, y_pred, labels):
-    """
-        Purpose: Compute confusion matrix to evaluate the accuracy of a classification.
-
-    Args:
-        y_true(list of obj): The ground_truth target y values
-            The shape of y is n_samples
-        y_pred(list of obj): The predicted target y values (parallel to y_true)
-            The shape of y is n_samples
-        labels(list of str): The list of all possible target y labels used to index the matrix
-
-    Returns:
-        matrix(list of list of int): Confusion matrix whose i-th row and j-th column entry
-            indicates the number of samples with true label being i-th class
-            and predicted label being j-th class
-
-    Notes:
-        Loosely based on sklearn's confusion_matrix(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
-    """
-    
-    # creates a blank matrix so it can be added to later, instead of having to create/append when adding to matrix
-    matrix = [[0 for _ in range(len(labels))] for _ in range(len(labels))]
-    
-    for loc in range(len(y_true)):
-        matrix[labels.index(y_true[loc])][labels.index(y_pred[loc])] += 1 # adds to the specific column's (predicted class) specific row (actual class)
-
-    return matrix
-
-
 def accuracy_score(y_true, y_pred, normalize=True):
     """
         Purpose: Compute the classification prediction accuracy score.
@@ -593,90 +563,6 @@ def binary_recall_score(y_true, y_pred, labels=None, pos_label=None):
         return tp/tp_fn
     
 
-def binary_f1_score(y_true, y_pred, labels=None, pos_label=None):
-    """
-        Puprpose: Compute the F1 score (for binary classification), also known as balanced F-score or F-measure.
-                  The F1 score can be interpreted as a harmonic mean of the precision and recall, where an F1 score reaches its best value at 1 and worst score at 0.
-                  The relative contribution of precision and recall to the F1 score are equal.
-                  The formula for the F1 score is: F1 = 2 * (precision * recall) / (precision + recall)
-
-        Args:
-            y_true(list of obj): The ground_truth target y values
-                The shape of y is n_samples
-            y_pred(list of obj): The predicted target y values (parallel to y_true)
-                The shape of y is n_samples
-            labels(list of obj): The list of possible class labels. If None, defaults to
-                the unique values in y_true
-            pos_label(obj): The class label to report as the "positive" class. If None, defaults
-                to the first label in labels
-
-        Returns:
-            f1(float): F1 score of the positive class
-
-        Notes:
-            Loosely based on sklearn's f1_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html
-    """
-    if labels is None:
-        labels = []
-        unique_keys = myutils.get_frequency(y_true)
-        for key in unique_keys:
-            # since get_frequency returns the frequency of each unique value
-            # appending the key only puts in the unique values of y
-            labels.append(key)
-    
-    if pos_label is None:
-        pos_label = labels[0] # sets positive value to be the first label
-
-    # since F1 requries precision and recall, call the functions that calculate them to avoid redundant code
-    precision = binary_precision_score(y_true, y_pred, labels, pos_label)
-    recall = binary_recall_score(y_true, y_pred, labels, pos_label)
-
-    if (precision + recall) == 0: # prevents division by zero
-        return 0
-    else:
-        return (2 * (precision * recall / (precision + recall)))
-
-
-def accuracy_score(y_true, y_pred, normalize=True):
-    """
-        Purpose: Compute the classification prediction accuracy score.
-
-        Args:
-            y_true (list of obj): - The ground_truth target y values
-                                  - has shape: n_samples
-            y_pred (list of obj): - The predicted target y values (corresponding to y_true)
-                                 - has shape: n_samples
-            normalize(bool): - If False, return the number of correctly classified samples.
-                             - Otherwise, return the fraction of correctly classified samples.
-
-        Returns:
-            score (float): If normalize == True, return the fraction of correctly classified samples (float),
-                        otherwise, return the number of correctly classified samples (int).
-
-        Notes: - Loosely based on sklearn's accuracy_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.accuracy_score.html#sklearn.metrics.accuracy_score
-               - acc = (TP + TN) / (P + N) = (TP + TN) / (TP + FP + TN + FN)
-    """
-
-    score = 0.0 # to store the number of correctly classified samples as a float.
-    correct = 0 # to keep track of the total number of correctly predicted samples. This = (TP + TN)
-
-    for idx in range(len(y_true)):
-        if y_true[idx] == y_pred[idx]:
-            correct += 1
-
-    if normalize is True:
-        score = correct / len(y_true) # ensure score is the fraction / proportion of correctly classified samples (float).
-    else:
-        score = correct # ensure score is the number of correctly classified samples (int).
-
-    return score
-
-
-
-
-
-
-
 # =============== RANDOM FOREST CLASSIFIER SECTION ======================
 
 def bootstrap_sample(X, y=None, n_samples=None, random_state=None):
@@ -731,32 +617,3 @@ def bootstrap_sample(X, y=None, n_samples=None, random_state=None):
 
 
     return X_sample, X_out_of_bag, y_sample, y_out_of_bag
-
-def rf_metrics(X_train, y_train, X_test, y_test, forest, k):
-    total_accuracy = 0
-    total_precision = 0
-    total_recall = 0
-    total_f1_score = 0
-    # for Naive Bayes matrice (needs to be a 1D list)
-    y_pred = []
-    y_actual = []
-
-    for index in range(len(X_train)):
-        forest.fit(X_train[index], y_train[index])
-
-        y_pred.extend(forest.predict(X_test[index]))
-        y_actual.extend(y_test[index])
-
-        # adds all performance matrice for each fold, so average can be calculated later
-        total_accuracy += accuracy_score(y_test[index], forest.predict(X_test[index]))
-        total_precision += multiclass_precision_score(y_test[index], forest.predict(X_test[index]))
-        total_recall += multiclass_recall_score(y_test[index], forest.predict(X_test[index]))
-        total_f1_score += multiclass_f1_score(y_test[index], forest.predict(X_test[index]))
-
-    accuracy = total_accuracy / k
-    error_rate = 1 - accuracy
-    precision = total_precision / k
-    recall = total_recall / k
-    f1_score = total_f1_score / k
-
-    return accuracy, error_rate, precision, recall, f1_score
