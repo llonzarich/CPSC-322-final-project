@@ -155,26 +155,29 @@ class MyDecisionTreeClassifier:
         for test in X_test:
             curr_tree = self.tree
             
-            while curr_tree[0] != "Leaf": # continues down tree until it reaches a leaf node
-                
-                if curr_tree[0] == "Attribute":
-                    attr_num = int(curr_tree[1][3]) # saves attribute index to check if value in X_test is same as value in attribute
-
-                curr_subtree = curr_tree[2:]
-                found = False
-                for sub in curr_subtree: # finds the attribute value that equals the test's value for the same attribute
-                    if sub[1] == test[attr_num]:
-                        curr_tree = sub[2]
-                        found = True
-                if not found:
-                    maj_value = []
-                    for sub in curr_subtree:
-                        maj_value.append(sub[2][1])
-                    y_pred.append(myutils.most_freq_class(maj_value))
+            # iterate / continue down tree until each test instance is assigned a class label, or until we reach a leaf node for each test instance. 
+            while True: 
+                # make sure we STOP once we reach a leaf node. 
+                if curr_tree[0] == "Leaf":
+                    y_pred.append(curr_tree[1]) # assign class label to the current test instance.
                     break
 
-                if curr_tree[0] == "Leaf":
-                    y_pred.append(curr_tree[1])
+                # if the current node is an attribute node (not a leaf), let's continue down the tree.   
+                if curr_tree[0] == "Attribute":
+                    attr_num = int(curr_tree[1][3]) # saves attribute index to check if value in X_test is same as value in attribute
+                    curr_subtree = curr_tree[2:] # get subtree of the current tree.
+                    found = False
+                    for sub in curr_subtree: # finds the attribute value that equals the test's value for the same attribute
+                        if sub[1] == test[attr_num]:
+                            curr_tree = sub[2]
+                            found = True
+                            break
+                    if not found:
+                        maj_value = []
+                        for sub in curr_subtree:
+                            maj_value.append(sub[2][1])
+                        y_pred.append(myutils.most_freq_class(maj_value))
+                        break
 
         return y_pred 
 
@@ -346,7 +349,7 @@ class MyRandomForestClassifier:
         for __ in range(self.N):
 
             # generate random subsamples of data for training and evaluating the tree
-            X_train, X_test, y_train, y_test = myevaluation.bootstrap_sample(X_train, y_train, random_state=random_state)
+            X_train, X_val, y_train, y_val = myevaluation.bootstrap_sample(X_train, y_train, random_state=random_state)
 
             # create a new tree object for the forest
             tree = MyDecisionTreeClassifier(F = self.F)
@@ -355,12 +358,11 @@ class MyRandomForestClassifier:
             tree.fit(X_train, y_train)
 
             # predict confidence rating for test instances
-            y_pred = tree.predict(X_test)
-
+            y_pred = tree.predict(X_val)
 
             # compute the accuracy of the model compared to true and predicted class labels
-            acc = myevaluation.accuracy_score(y_test, y_pred)
-            
+            acc = myevaluation.accuracy_score(y_val, y_pred)
+
             # append the trained tree and its accuracy score to tuple of trees (growing forest)
             candidate_trees.append((tree, acc))
 

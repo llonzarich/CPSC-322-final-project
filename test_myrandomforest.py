@@ -82,7 +82,6 @@ def test_random_forest_classifier_fit():
     # retrieve the forest from the fit() method.
     forest = myForest.trees
 
-
     assert forest is not None # make sure the forest has trees (the forest should be a list of tree obj's)
     assert len(forest) == 7   # make sure the forest has the correct # of trees.
     
@@ -115,13 +114,22 @@ def test_random_forest_classifier_predict():
         ]
     y_train_interview = ["False", "False", "True", "True", "True", "False", "True", "False", "True", "True", "True", "True", "True", "False"]
 
+    X_test_interview = [
+        ["Junior", "Java", "yes", "no"],
+        ["Junior", "Java", "yes", "yes"]
+    ]
+    y_test_interview = ["True", "False"]
+
+
     myForest = MyRandomForestClassifier(N=20, M=7, F=2)
     myForest.fit(X_train_interview, y_train_interview, random_state=8)
 
-    assert len(myForest.predict()) == 5 # make sure there are 5 class predictions (0.33 of original dataset, as divided)
+    y_pred = myForest.predict(X_test_interview)
+
+    assert len(y_pred) == len(X_test_interview) # make sure there are 5 class predictions (0.33 of original dataset, as divided)
 
     y_pred = []
-    for test in myForest.X_test:
+    for test in X_test_interview:
         # finds all predictions from all M trees
         test_predictions = []
         for tree in myForest.trees:
@@ -134,5 +142,5 @@ def test_random_forest_classifier_predict():
             mfv[pred] += 1
         y_pred.append(max(mfv, key=mfv.get))
 
-    assert myForest.predict() == y_pred # checks the most frequent class label for each tests' forest is set as the class label for the test instance
+    assert myForest.predict(X_test_interview) == y_pred # checks the most frequent class label for each tests' forest is set as the class label for the test instance
 
