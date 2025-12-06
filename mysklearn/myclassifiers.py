@@ -13,6 +13,8 @@ class MyDecisionTreeClassifier:
         y_train(list of obj): The target y values (parallel to X_train).
             The shape of y_train is n_samples
         tree(nested list): The extracted tree model.
+        F (int): The number of randomly selected attributes to consider partitioning data on
+            - Only set to a value if this class is used for the Random Forest Classifier 
 
     Notes:
         Loosely based on sklearn's DecisionTreeClassifier:
@@ -227,20 +229,16 @@ class MyDecisionTreeClassifier:
         recurse(self.tree, [])
     
     def visualize_tree(self, attribute_names=None):
-        """Visualizes a tree via the open source Graphviz graph visualization package and
-        its DOT graph language (produces .dot and .pdf files).
+        """Visualizes a tree via the open source Graphviz graph visualization package
 
         Args:
-            dot_fname(str): The name of the .dot output file.
-            pdf_fname(str): The name of the .pdf output file generated from the .dot file.
             attribute_names(list of str or None): A list of attribute names to use in the decision rules
                 (None if a list is not provided and the default attribute names based on indexes
                 (e.g. "att0", "att1", ...) should be used).
 
-        Notes:
-            Graphviz: https://graphviz.org/
-            DOT language: https://graphviz.org/doc/info/lang.html
-            You will need to install graphviz in the Docker container as shown in class to complete this method.
+        Returns:
+            g (Graph): a graph that visualizes the Decision Tree
+                
         """
         if attribute_names is None: # in case no attribute_names are given, names are put into att0, att1, ... format
             attribute_names = []
@@ -291,7 +289,7 @@ class MyDecisionTreeClassifier:
 
         find_nodes_recursive(self.tree, "", "")
 
-        # display 
+        # display graph 
         return g
 
 class MyRandomForestClassifier:
@@ -345,6 +343,17 @@ class MyRandomForestClassifier:
                 test_size (float): the proportion of the dataset to be in the test set
                 random_state (int): integer used for seeding a random number generator
                     for reproducible results
+            
+            Returns:
+                X_train (list of list of obj): The list of training instances (samples)
+                    The shape of X_train is (n_train_samples, n_features)
+                X_test (list of list of obj): The list of testing instances (samples)
+                    The shape of X_test is (n_test_samples, n_features)
+                y_train (list of obj): The target y values (parallel to X_train)
+                    The shape of y_train is n_train_samples
+                y_test (list of obj): The true y values (parallel to X_test)
+                    The shape of y_test is n_test_samples
+
 
             Notes: - test set = 1/3 of original dataset.
                    - train set = remaining 2/3 of original dataset.
@@ -352,8 +361,9 @@ class MyRandomForestClassifier:
         if random_state is not None:
             np.random.seed(random_state)
 
-        test_length = round(test_size * len(X))
+        test_length = round(test_size * len(X)) # finds number of testing instances (considering test_size proportion)
 
+        # divide data rows based on class label
         divided_X = {}
         divided_y = {}
 
@@ -364,27 +374,27 @@ class MyRandomForestClassifier:
             divided_X[yval].append(xval)
             divided_y[yval].append(yval)
 
-        class_counts = {}
+        class_counts = {} # number of rows for each class label
         for label in divided_X:
             class_counts[label] = len(divided_y[label])
 
-        proportion = {}
+        proportion = {} # finds test size per class label size
         for label in divided_X:
             proportion[label] = class_counts[label] * test_length / len(X)
 
-        rounded_cts = {}
+        rounded_cts = {} # rounds test sizes
         for key, value in proportion.items():
             rounded_cts[key] = int(round(value))
 
-
+        # in case rounding impacts test sizes
         difference = test_length - sum(rounded_cts.values())
-        if difference != 0:
-            fraction = {}
+        if difference != 0:  # if we lose number of testing rows due to rounding down
+            fraction = {} # find classes with highest number/fraction
             for label in divided_X:
                 fraction[label] = proportion[label] - int(proportion[label])
-
             sorted_labels = sorted(fraction, key = lambda k: fraction[k], reverse = True)
             
+            # keep adding/subtracting rows until sum(rounded_counts) == test_length
             for label in sorted_labels[:abs(difference)]:
                 rounded_cts[label] += np.sign(difference)
 
@@ -393,6 +403,7 @@ class MyRandomForestClassifier:
         X_train = []
         y_train = []
 
+        # shuffles sample indexes inside class label
         for label in divided_X:
 
             index = np.arange(class_counts[label])
@@ -400,7 +411,7 @@ class MyRandomForestClassifier:
 
             test_k = rounded_cts[label]
 
-            # choose test indices
+            # choose test/train indices based on fraction of testing
             test_index = index[:test_k]
             train_index = index[test_k:]
 
@@ -411,7 +422,8 @@ class MyRandomForestClassifier:
             for i in train_index:
                 X_train.append(divided_X[label][i])
                 y_train.append(label)
-
+        
+        # shuffle training and test, since divided by class label
         def shuffle_parallel(X, y):
             index = np.arange(len(X))
             np.random.shuffle(index)
@@ -420,6 +432,7 @@ class MyRandomForestClassifier:
         X_train, y_train = shuffle_parallel(X_train, y_train)
         X_test, y_test = shuffle_parallel(X_test, y_test)
 
+        # save X_train and y_train to class object
         self.X_train = X_train
         self.y_train = y_train
 

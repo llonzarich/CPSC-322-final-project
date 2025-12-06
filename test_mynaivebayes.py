@@ -4,6 +4,8 @@ from mysklearn.myclassifiers import MyNaiveBayesClassifier
 def test_naive_bayes_classifier_fit():
     myNaive = MyNaiveBayesClassifier() # reused for all examples
 
+    # following test tests if conditionals for different dataset examples are correctly calculated
+
     # in-class Naive Bayes example (lab task #1)
     header_inclass_example = ["att1", "att2"]
     X_train_inclass_example = [
@@ -121,6 +123,8 @@ def test_naive_bayes_classifier_fit():
     
     
 def test_naive_bayes_classifier_predict():
+    # following tests test if the correct class value is returned (has the higher probability compared to other class values)
+
     # in-class Naive Bayes example (lab task #1)
     header_inclass_example = ["att1", "att2"]
     X_train_inclass_example = [

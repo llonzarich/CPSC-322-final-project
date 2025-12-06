@@ -1,7 +1,5 @@
 import numpy as np
-from mysklearn import myutils
 import math
-
 
 # ======================= GENERAL EVALUATION SECTION ==========================
 def train_test_split(X, y, test_size=0.33, random_state=None, shuffle=True):
@@ -71,8 +69,6 @@ def train_test_split(X, y, test_size=0.33, random_state=None, shuffle=True):
     y_test = y_test.tolist()
 
     return X_train, X_test, y_train, y_test
-
-
 
 
 def kfold_split(X, n_splits=5, random_state=None, shuffle=False):
@@ -559,110 +555,6 @@ def multiclass_f1_score(y_true, y_pred, labels=None):
     f1 = sum(f * count for f, count in zip(f1s, class_counts)) / total_count
 
     return f1
-
-
-def binary_precision_score(y_true, y_pred, labels=None, pos_label=None):
-    """
-        Purpose: compute the precision (for binary classification). The precision is the ratio tp / (tp + fp) where tp is the number of true positives and fp the number of false positives.
-                 The precision is intuitively the ability of the classifier not to label as positive a sample that is negative. The best value is 1 and the worst value is 0.
-
-    Args:
-        y_true(list of obj): The ground_truth target y values
-            The shape of y is n_samples
-        y_pred(list of obj): The predicted target y values (parallel to y_true)
-            The shape of y is n_samples
-        labels(list of obj): The list of possible class labels. If None, defaults to
-            the unique values in y_true
-        pos_label(obj): The class label to report as the "positive" class. If None, defaults
-            to the first label in labels
-
-    Returns:
-        precision(float): Precision of the positive class
-
-    Notes:
-        Loosely based on sklearn's precision_score(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_score.html
-    """
-
-    if labels is None:
-        labels = []
-        unique_keys = myutils.get_frequency(y_true)
-        for key in unique_keys:
-            # since get_frequency returns the frequency of each unique value
-            # appending the key only puts in the unique values of y
-            labels.append(key) 
-    
-    if pos_label is None:
-        pos_label = labels[0] # sets positive value to be the first label
-
-    tp = 0
-    for loc in range(len(y_true)):
-        if (y_true[loc] == y_pred[loc]) and (y_true[loc] == pos_label): 
-            # captures matching true and pred, AND labels that are only the positive label
-            tp += 1
-
-    tp_fp = tp
-    for loc in range(len(y_true)):
-        if (y_true[loc] != pos_label) and (y_pred[loc] == pos_label): 
-            # captures only the true values that are NOT the positive label AND the predictions that incorrectly predict posiitve label (aka false positive)
-            tp_fp += 1 # only adds false positives since true positives is already calculated and added earlier 
-
-    if tp_fp == 0: # prevents division by zero
-        return 0
-    else:
-        return tp/tp_fp
-    
-
-def binary_recall_score(y_true, y_pred, labels=None, pos_label=None):
-    """
-        Purpose: Compute the recall (for binary classification). The recall is the ratio tp / (tp + fn) where tp is the number of true positives and fn the number of false negatives.
-                 The recall is intuitively the ability of the classifier to find all the positive samples.
-                 The best value is 1 and the worst value is 0.
-
-    Args:
-        y_true(list of obj): The ground_truth target y values
-            The shape of y is n_samples
-        y_pred(list of obj): The predicted target y values (parallel to y_true)
-            The shape of y is n_samples
-        labels(list of obj): The list of possible class labels. If None, defaults to
-            the unique values in y_true
-        pos_label(obj): The class label to report as the "positive" class. If None, defaults
-            to the first label in labels
-
-    Returns:
-        recall(float): Recall of the positive class
-
-    Notes:
-        Loosely based on sklearn's recall_score():
-            https://scikit-learn.org/stable/modules/generated/sklearn.metrics.recall_score.html
-    """
-    
-    if labels is None:
-        labels = []
-        unique_keys = myutils.get_frequency(y_true)
-        for key in unique_keys:
-            # since get_frequency returns the frequency of each unique value
-            # appending the key only puts in the unique values of y
-            labels.append(key)
-    
-    if pos_label is None:
-        pos_label = labels[0] # sets positive value to be the first label
-
-    tp = 0
-    for loc in range(len(y_true)):
-        if (y_true[loc] == y_pred[loc]) and (y_true[loc] == pos_label): 
-            # captures pred that correctly classified the TRUE label
-            tp += 1
-
-    tp_fn = tp
-    for loc in range(len(y_true)):
-        if (y_true[loc] == pos_label) and (y_pred[loc] != pos_label):
-            # captures only the true values that are actually positive AND the pred that is incorrectly classified as negative (aka the false negatives)
-            tp_fn += 1 # only adds false negatives since true positives is already calculated and added earlier
-
-    if tp_fn == 0: # prevents division by zero
-        return 0
-    else:
-        return tp/tp_fn
     
 
 # =============== RANDOM FOREST CLASSIFIER SECTION ======================

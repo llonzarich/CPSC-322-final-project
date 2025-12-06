@@ -130,25 +130,6 @@ def partition_data(X_data, y_data, att_to_split):
     return subset
 
 
-def get_col(X_data, col_num):
-    """returns a column of a dataset
-    
-    Parameters:
-        X_data (a list of a list of objects): the list of training samples
-        col_num (integer): the column index of the column being returned
-
-    Returns:
-        return_col (list of objects): all values in a specific column
-        
-    """
-    
-    return_col = []
-    for row in X_data:
-        return_col.append(row[col_num])
-    
-    return return_col
-
-
 def most_freq_class(y_data):
     """returns most frequent class label
     
@@ -170,13 +151,6 @@ def most_freq_class(y_data):
     indices.sort() # if there is a tie in most frequent class label, takes the first alphabetically
 
     return indices[0]
-
-
-def my_discretizer(value):
-    for i in list(range(1, 11)):
-        if float(round(value, 1)) <= (i/10):
-            return i
-
 
 
 # ================== GENERAL SECTION ===========================
@@ -273,3 +247,67 @@ def cross_val_predict(X, y, k, classifier_class, stratify=None):
     y_preds = [str(y) for y in y_preds]
 
     return avg_acc, avg_err_rate, avg_precision, avg_recall, avg_f1, y_trues, y_preds
+
+
+def my_discretizer(value):
+    """returns discrete values for already normalized values
+    
+    Parameters:
+        value (float): a normalized value (between 0 and 1) 
+
+    Returns:
+        i (int): a categorical discrete value, ranging between 1 - 10
+    
+    Notes:
+        Discrete values based on every tenth of a normalized value
+            For example: 0 - 0.1 ==> 1
+                         0.1 (excluded) - 0.2 ==> 2
+                         Etc.
+        
+    """
+    for i in list(range(1, 11)):
+        if float(round(value, 1)) <= (i/10):
+            return i
+
+
+def get_col(X_data, col_num):
+    """returns a column of a dataset
+    
+    Parameters:
+        X_data (a list of a list of objects): the list of training samples
+        col_num (integer): the column index of the column being returned
+
+    Returns:
+        return_col (list of objects): all values in a specific column
+        
+    """
+    
+    return_col = []
+    for row in X_data:
+        return_col.append(row[col_num])
+    
+    return return_col
+
+
+def list_deep_copy(old_list):
+    """returns a deep copy of a 2D list
+    
+    Parameters:
+        old_list (list of list of obj): a 2D list that needs to be copied
+            - This function is mainly used for the confusion matrix
+
+    Returns:
+        new_list (list of list of obj): A deep copied list of the old_list, with
+            the exact same values/length of lists
+        
+    """
+    new_list = []
+
+    for row in old_list:
+        curr_row = []
+        for value in row:
+            curr_row.append(value)
+        
+        new_list.append(curr_row)
+    
+    return new_list
