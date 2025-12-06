@@ -1,8 +1,80 @@
 import numpy as np
 from mysklearn import myutils
+import math
 
 
 # ======================= GENERAL EVALUATION SECTION ==========================
+def train_test_split(X, y, test_size=0.33, random_state=None, shuffle=True):
+    """
+        Purpose: Split dataset into train and test sets based on a test set size.
+
+        Args:
+            X (list of list of obj): - The list of samples. 
+                                    - has shape: (n_samples, n_features)
+            y (list of obj): - The target y values (labels corresponding to X)
+                            - has shape:  n_samples
+            test_size (float or int): - float for proportion of dataset to be in test set (e.g. 0.33 for a 2:1 split)
+                                     - int for absolute number of instances to be in test set (e.g. 5 for 5 instances in test set)
+            random_state (int): - integer used for seeding a random number generator for reproducible results
+                               - Use random_state to seed your random number generator (you can use the math module or use numpy for your generator) (choose one and consistently use that generator throughout your code)
+            shuffle (bool): whether or not to randomize the order of the instances before splitting
+                Shuffle the rows in X and y before splitting and be sure to maintain the parallel order of X and y!!
+
+        Returns:
+            X_train(list of list of obj): The list of training samples
+            X_test(list of list of obj): The list of testing samples
+            y_train(list of obj): The list of target y values for training (parallel to X_train)
+            y_test(list of obj): The list of target y values for testing (parallel to X_test)
+
+        Note: - Loosely based on sklearn's train_test_split(): https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+    """
+    # convert X and y to numpy arrays.
+    X = np.array(X)
+    y = np.array(y)
+
+    # set random seed.
+    if random_state is not None:
+        np.random.seed(random_state)
+
+    # create a list to store all the indices in the dataset. 
+    indices = np.arange(len(X))
+
+    # compute the number of instances for the test set, based on the information we're given.
+    if isinstance(test_size, float):
+        num_test = math.ceil(len(X) * test_size)
+    else:
+        num_test = test_size
+
+    # shuffle indices if True
+    # "find" the instances for the train and test sets.
+    # note: splitting based off indices ensures the train and test sets will have corresponding instances.
+    if shuffle == True:
+        np.random.shuffle(indices)
+        test_indices = indices[:num_test] # grab instances from index   0 --> train size index.
+        train_indices = indices[num_test:] # grab instances from train size index --> last index in the indices list. 
+    else:
+        test_indices = indices[len(X) - num_test:]
+        train_indices = indices[:len(X) - num_test]
+
+    # create train set.
+    X_train = X[train_indices]
+    y_train = y[train_indices]
+
+    # create the test set.
+    X_test = X[test_indices]
+    y_test = y[test_indices]
+
+    # convert numpy arrays back to lists
+    X_train = X_train.tolist()
+    y_train = y_train.tolist()
+    X_test = X_test.tolist()
+    y_test = y_test.tolist()
+
+    return X_train, X_test, y_train, y_test
+
+
+
+
 def kfold_split(X, n_splits=5, random_state=None, shuffle=False):
     """
         Purpose: Split dataset into cross validation folds.

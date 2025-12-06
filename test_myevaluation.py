@@ -13,6 +13,60 @@ from sklearn.metrics import accuracy_score
 from mysklearn import myevaluation
 
 
+# note: order is actual/received student value, expected/solution
+def test_train_test_split():
+    """
+    https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
+    """
+    X_1 = [[0, 1],
+       [2, 3],
+       [4, 5],
+       [6, 7],
+       [8, 9]]
+    y_1 = [0, 1, 2, 3, 4]
+    # then put repeat values in
+    X_2 = [[0, 1],
+       [2, 3],
+       [5, 6],
+       [6, 7],
+       [0, 1]]
+    y_2 = [2, 3, 3, 2, 2]
+    test_sizes = [0.33, 0.25, 4, 3, 2, 1]
+    for X, y in zip([X_1, X_2], [y_1, y_2]):
+        for test_size in test_sizes:
+            X_train_solution, X_test_solution, y_train_solution, y_test_solution =\
+                train_test_split(X, y, test_size=test_size, random_state=0, shuffle=False)
+            X_train, X_test, y_train, y_test = myevaluation.train_test_split(X, y, test_size=test_size, random_state=0, shuffle=False)
+
+            assert np.array_equal(X_train, X_train_solution) # order matters with np.array_equal()
+            assert np.array_equal(X_test, X_test_solution)
+            assert np.array_equal(y_train, y_train_solution)
+            assert np.array_equal(y_test, y_test_solution)
+
+    # if get here, should have base algorithm implemented just fine
+    # now test random_state and shuffle
+    test_size = 2
+    X_train0_notshuffled, X_test0_notshuffled, y_train0_notshuffled, y_test0_notshuffled =\
+        myevaluation.train_test_split(X_1, y_1, test_size=test_size, random_state=0, shuffle=False)
+    X_train0_shuffled, X_test0_shuffled, y_train0_shuffled, y_test0_shuffled =\
+        myevaluation.train_test_split(X_1, y_1, test_size=test_size, random_state=0, shuffle=True)
+    # make sure shuffle keeps X and y parallel
+    for i, _ in enumerate(X_train0_shuffled):
+        assert y_1[X_1.index(X_train0_shuffled[i])] == y_train0_shuffled[i]
+    # same random_state but with shuffle= False vs True should produce diff folds
+    assert not np.array_equal(X_train0_notshuffled, X_train0_shuffled)
+    assert not np.array_equal(y_train0_notshuffled, y_train0_shuffled)
+    assert not np.array_equal(X_test0_notshuffled, X_test0_shuffled)
+    assert not np.array_equal(y_test0_notshuffled, y_test0_shuffled)
+    X_train1_shuffled, X_test1_shuffled, y_train1_shuffled, y_test1_shuffled =\
+        myevaluation.train_test_split(X_1, y_1, test_size=test_size, random_state=1, shuffle=True)
+    # diff random_state should produce diff folds when shuffle=True
+    assert not np.array_equal(X_train0_shuffled, X_train1_shuffled)
+    assert not np.array_equal(y_train0_shuffled, y_train1_shuffled)
+    assert not np.array_equal(X_test0_shuffled, X_test1_shuffled)
+    assert not np.array_equal(y_test0_shuffled, y_test1_shuffled)
+
+
 # test utility function
 def check_folds(n, n_splits, folds, folds_solution):
     """Utility function
