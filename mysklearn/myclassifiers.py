@@ -180,6 +180,53 @@ class MyDecisionTreeClassifier:
                         break
 
         return y_pred 
+    
+
+    def print_decision_rules(self, attribute_names=None, class_name="class"):
+        """
+            Purpose: Prints the decision rules from the tree in the format "IF att == val AND ... THEN class = label", one rule on each line.
+
+            Args:
+                attribute_names (list of str or None): - A list of attribute names to use in the decision rules
+                                                    - if None (the list was not provided), use the default attribute names based on indexes (e.g. "att0", "att1", ...) should be used).
+                class_name(str): - A string to use for the class name in the decision rules
+                                ("class" if a string is not provided and the default name "class" should be used).
+            
+            Note: - Leaf subtree lists are stored as [type_of_node (e.g., "Attribute", "Value", "Leaf"), node_label (e.g., "True", "False"), numerator_probability, denominator_probability]
+                  - Attribute subtree lists are stored as [type_of_node, attribute]
+                  - I did reference ChatGPT to guide me through how I would approach this function because I was getting a bit lost in the logic due to the recursion element here.
+        """
+        # get the number of attributes in the dataset. 
+        num_attributes = len(self.X_train[0])
+
+        # handle attribute_names=None parameter.
+        if attribute_names is None:
+            attribute_names = [f"att{i}" for i in range(num_attributes)]
+        
+        # traverse tree until one of the following conditions have been met.
+        def recurse(subtree, conditions):
+            curr_node = subtree[0] # grab the current node type. (e.g., "Attribute", "Value", "Leaf"). 
+            
+            # base case 1: if leaf, print decision rule:
+            if curr_node == "Leaf":
+                label = subtree[1] # get the label for the current node. (e.g., "True", "False").
+                rule_str = " AND ".join(conditions) # grab all conditions that have led us to this leaf node.
+                print(f"IF {rule_str} THEN {class_name} = {label}") # print the rule.
+
+            # base case 2: if attribute node, recurse/iterate down through each branch and "append" a rule as we go.
+            elif curr_node == "Attribute":
+                att_name = subtree[1] # get the attribute that the current node splits on. 
+
+                for branch in subtree[2:]: # iterate over each branch off of the current node.
+                    att_val = branch[1] # get the value of the attribute for the current branch
+                    val_subtree = branch[2] # get the subtree that goes off of the current branch.
+                    new_rule = conditions + [f"{att_name} == {att_val}"] # add this rule to the decision rule string.
+                    recurse(val_subtree, new_rule) # recursively continue to go through the subtree.
+
+        recurse(self.tree, [])
+
+
+
 
 
 class MyRandomForestClassifier:
