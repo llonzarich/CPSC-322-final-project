@@ -1,6 +1,7 @@
 import numpy as np
 from mysklearn import myutils
 from mysklearn import myevaluation
+from graphviz import Graph
 
 
 class MyDecisionTreeClassifier:
@@ -224,10 +225,74 @@ class MyDecisionTreeClassifier:
                     recurse(val_subtree, new_rule) # recursively continue to go through the subtree.
 
         recurse(self.tree, [])
+    
+    def visualize_tree(self, attribute_names=None):
+        """Visualizes a tree via the open source Graphviz graph visualization package and
+        its DOT graph language (produces .dot and .pdf files).
 
+        Args:
+            dot_fname(str): The name of the .dot output file.
+            pdf_fname(str): The name of the .pdf output file generated from the .dot file.
+            attribute_names(list of str or None): A list of attribute names to use in the decision rules
+                (None if a list is not provided and the default attribute names based on indexes
+                (e.g. "att0", "att1", ...) should be used).
 
+        Notes:
+            Graphviz: https://graphviz.org/
+            DOT language: https://graphviz.org/doc/info/lang.html
+            You will need to install graphviz in the Docker container as shown in class to complete this method.
+        """
+        if attribute_names is None: # in case no attribute_names are given, names are put into att0, att1, ... format
+            attribute_names = []
+            for i in range(len(self.X_train[0])):
+                attribute_names.append("att" + str(i))
+        
+        g = Graph()
+        g.attr(rankdir='TB')  #top-to-bottom layout
 
+        node_counter = 0 # node counter needed since an attribute can appear more than once in the tree -- need to differentiate Attribute nodes
 
+        def find_nodes_recursive(curr_tree, last_att, value_label): # this function traverses each branch/leaf in tree, creating a node to be output into a pdf file
+            nonlocal node_counter # needs to be nonlocal or else the leaf nodes will connect to attributes that are not meant for them (differentiates nodes)
+            subtree_type = curr_tree[0] # this function is similar to the print_decision_rules function 
+
+            node_id = f"node{node_counter}" # creates a unique name for each node
+            node_counter += 1 
+
+            if subtree_type == "Leaf":
+                leaf_label = f"{curr_tree[1]} ({round(curr_tree[2]/curr_tree[3] * 100, 2)}%)"
+                g.node(node_id, label = leaf_label)
+
+                if last_att != "": # creates an edge between each leaf and attribute, with value on relationship line 
+                    g.edge(last_att,node_id, label = str(value_label))
+                return
+            
+            if subtree_type == "Attribute":
+                prev_att = last_att # saves the last attribute name to check if it is the first attribute
+
+                att_index = int(curr_tree[1][3]) # finds which attribute is being split upon
+                last_att = str(attribute_names[att_index]) 
+
+                g.node(node_id, label = last_att, shape = "box") # creates an attribute node
+                
+                if prev_att != "": 
+                # if attribute is first attribute being split on, program 
+                # should not create an edge (since there is nothing to conenct to yet)
+                    g.edge(prev_att, node_id, label = str(value_label))
+
+                for i in range(2, len(curr_tree)): # similar to print_decision_rules function, need to traverse down each branch
+                    value_branch = curr_tree[i]
+                    value_label = str(value_branch[1])
+            
+                    subtree = value_branch[2]
+
+                    find_nodes_recursive(subtree, node_id, value_label)
+        
+
+        find_nodes_recursive(self.tree, "", "")
+
+        # display 
+        return g
 
 class MyRandomForestClassifier:
     """
