@@ -227,25 +227,25 @@ class MyDecisionTreeClassifier:
                     recurse(val_subtree, new_rule) # recursively continue to go through the subtree.
 
         recurse(self.tree, [])
-    
-    def visualize_tree(self, attribute_names=None):
-        """Visualizes a tree via the open source Graphviz graph visualization package
+
+    def visualize_tree(self, dot_fname, pdf_fname, attribute_names=None):
+        """Visualizes a tree via the open source Graphviz graph visualization package and
+        its DOT graph language (produces .dot and .pdf files).
 
         Args:
+            dot_fname(str): The name of the .dot output file.
+            pdf_fname(str): The name of the .pdf output file generated from the .dot file.
             attribute_names(list of str or None): A list of attribute names to use in the decision rules
                 (None if a list is not provided and the default attribute names based on indexes
                 (e.g. "att0", "att1", ...) should be used).
-
-        Returns:
-            g (Graph): a graph that visualizes the Decision Tree
-                
         """
+
         if attribute_names is None: # in case no attribute_names are given, names are put into att0, att1, ... format
             attribute_names = []
             for i in range(len(self.X_train[0])):
                 attribute_names.append("att" + str(i))
         
-        g = Graph()
+        g = Graph(filename=dot_fname)
         g.attr(rankdir='TB')  #top-to-bottom layout
 
         node_counter = 0 # node counter needed since an attribute can appear more than once in the tree -- need to differentiate Attribute nodes
@@ -289,8 +289,9 @@ class MyDecisionTreeClassifier:
 
         find_nodes_recursive(self.tree, "", "")
 
-        # display graph 
-        return g
+        #save as PDF
+        g.render(pdf_fname, format='pdf',cleanup=True)
+        
 
 class MyRandomForestClassifier:
     """
