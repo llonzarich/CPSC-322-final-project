@@ -25,6 +25,7 @@ class MyPyTable:
             data = []
         self.data = copy.deepcopy(data)
 
+
     def new_deep_copy(self):
         """ copies a mypytable object for editing, so if certain rows are deleted (if program deletes rows with NA), the original object
         is still available that contains the NA values
@@ -50,22 +51,10 @@ class MyPyTable:
 
         return new_dataset
 
+
     def pretty_print(self):
         """Prints the table in a nicely formatted grid structure."""
         print(tabulate(self.data, headers=self.column_names))
-
-
-    def get_shape(self):
-        """Computes the dimension of the table (N x M).
-
-        Returns:
-            tuple: (N, M) where N is number of rows and M is number of columns
-        """
-
-        row_num = len(self.data) # gets the number of lists in the self.data list (rows)
-        col_num = len(self.column_names) # gets the number of columns
-
-        return row_num, col_num
 
 
     def get_column(self, col_identifier, include_missing_values=True):
@@ -109,7 +98,7 @@ class MyPyTable:
         """Try to convert each value in the table to a numeric type (float).
 
         Raises:
-            ValueError: if vale cannot be a number (is a NA value)
+            ValueError: if value cannot be a number (is a NA value)
 
         Notes:
             Leaves values as-is that cannot be converted to numeric.
@@ -121,25 +110,6 @@ class MyPyTable:
                     row[index] = float(row[index])
                 except ValueError: # if the value is NA
                     pass
-
-
-    def drop_rows(self, row_indexes_to_drop):
-        """Remove rows from the table data.
-
-        Parameters:
-            row_indexes_to_drop (list of int): list of row indexes to remove from the table data.
-        """
-
-        row_indexes_to_drop.sort(reverse = True) # sorts the values in descending order, since if we delete starting from the top of the table, everything shifts up, and we lose the indexes of which values we are deleting 
-
-        iterator = len(self.data) - 1 # starts at the bottom of the table
-        row_index = 0
-
-        while iterator >= 0 and row_index < len(row_indexes_to_drop): # checks we are not at the top of the table (since we're starting at the bottom) and we have dropped all values in the list given
-            if iterator == row_indexes_to_drop[row_index]:
-                del self.data[iterator]
-                row_index += 1
-            iterator -= 1
             
 
     def load_from_file(self, filename):
@@ -168,112 +138,6 @@ class MyPyTable:
             self.convert_to_numeric() # immediately converts values to numeric
 
         return self
-
-
-    def save_to_file(self, filename):
-        """Save column names and data to a CSV file.
-
-        Parameters:
-            filename (str): relative path for the CSV file to save the contents to.
-
-        Notes:
-            Uses the csv module.
-        """
-
-        with open (filename, "w") as out_file:
-    
-            
-            out_file = csv.writer(out_file)
-            out_file.writerow(self.column_names) # writes the header
-            out_file.writerows(self.data) # writes all the data
-
-
-    def find_duplicates(self, key_column_names):
-        """Returns a list of indexes representing duplicate rows.
-        Rows are identified uniquely based on key_column_names.
-
-        Parameters:
-            key_column_names (list of str): column names to use as row keys.
-
-        Returns:
-            list of int: list of indexes of duplicate rows found
-
-        Notes:
-            Subsequent occurrence(s) of a row are considered the duplicate(s).
-            The first instance of a row is not considered a duplicate.
-        """
-
-        duplicate_indexes = []
-        key_column_index = []
-
-        for value in key_column_names:
-            key_column_index.append(self.column_names.index(value))
-
-        for row_index, row in enumerate(self.data):
-            curr_row = row_index # sets the first row it finds to "curr_row", so it can check the other rows without having to move off of the current one (also avoids the current row from being seen as a duplicate)
-            
-            while curr_row < len(self.data):
-                is_same = True
-                
-                for index in key_column_index:
-                    if self.data[curr_row][index] != row[index]: # checks if the saved row's value is (not) the same as the row we're looking at (as we're going down the table)'s value
-                        is_same = False
-
-                if is_same: # if the value in the columns are the same, it gets added to the duplicate indexes
-                    if(curr_row != row_index and curr_row not in duplicate_indexes): # ensures the rows that are duplicates that are saved aren't aleady in the list (since we can have more than 2 duplicate rows)
-                        duplicate_indexes.append(curr_row)
-
-                curr_row += 1
-            
-
-        duplicate_indexes.sort() # sorts the rows in order
-
-        return duplicate_indexes
-
-
-    def remove_rows_with_missing_values(self):
-        """Remove rows from the table data that contain a missing value ("NA")."""
-        
-        missing_values_index = []
-
-        for row_index, row in enumerate(self.data):
-            for index in row: # checks each column of each row
-                if index == "NA":
-                    if row_index not in missing_values_index:
-                        missing_values_index.append(row_index) # saves all the rows that has a missing value, so it can call the drop_rows method
-
-        self.drop_rows(missing_values_index)
-        
-
-    def replace_missing_values_with_column_average(self, col_name):
-        """For columns with continuous data, fill missing values in a column
-        by the column's original average.
-
-        Raises:
-            TypeError: if value is NA
-
-        Parameters:
-            col_name (str): name of column to fill with the original average (of the column).
-        """
-
-        col_index = self.column_names.index(col_name) # finds the index of the column name
-
-        total_values = 0
-        value_sum = 0
-
-        for row in self.data:
-            try: 
-                value_sum += row[col_index] # adds all the values up in each column
-                total_values += 1
-            except TypeError: # if the value is "NA"
-                pass
-
-        new_value = float(value_sum // total_values) # taking floor value, since all values in sample data (auto-mpg.txt) have 0's after decimal places (like an integer)
-        
-        for row in self.data:
-            if row[col_index] == "NA":
-                row[col_index] = new_value # sets all the "NA" values to be the average
-
    
 
     def compute_summary_statistics(self, col_names):
