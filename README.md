@@ -74,3 +74,8 @@ In addition to the mysklearn folder, this repository contains the following:
   * Contains unit tests for the Naive Bayes class
 * test_myrandomforest.py
   * Contains unit tests for the random forest class
+* output_files
+  * Contains DT-Visual.pdf
+    * Contains the visualization of the Decision Tree
+  * Contains RF-VIsual.pdf
+    * Contains the visualization of the most accurate Decision Tree from the Forest
