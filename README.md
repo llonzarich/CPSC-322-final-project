@@ -1,4 +1,4 @@
-# Confidence Level Detection
+# Confidence Level Classification
 
 ## Project Description
 This project implements three different machine learning algorithms to classify a person's confidence level as 'confident', 'neutral', or 'low' from 9 total attributes. There are 6 continuous numerical attributes, representing the individual's body features, and 3 categorical attributes, representing the individual's body posture.
